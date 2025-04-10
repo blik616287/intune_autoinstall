@@ -426,10 +426,6 @@ autoinstall:
       WantedBy=multi-user.target
       EOF
 
-    # Enable the services
-    - curtin in-target --target=/target -- systemctl enable run-vnc-setup.service
-    - curtin in-target --target=/target -- systemctl enable run-software-setup.service
-
     # Create README file
     - |
       cat > /target/home/${USERNAME}/README.txt << 'README'
@@ -473,6 +469,75 @@ autoinstall:
       sudo systemctl restart xvfb openbox x11vnc novnc
       README
     - chown 1000:1000 /target/home/${USERNAME}/README.txt
+
+    # Create a script to display connection information to the console
+    - |
+      cat > /target/usr/local/bin/display-connection-info.sh << 'CONNECTIONINFO'
+      #!/bin/bash
+
+      # Make sure we're outputting to the console
+      exec > /dev/tty1 2>&1
+
+      # Clear the screen
+      clear
+
+      # Display a nice header
+      echo "=============================================================="
+      echo "           UBUNTU VNC SERVER SETUP COMPLETE                   "
+      echo "=============================================================="
+      echo ""
+
+      # Get the IP address
+      IP_ADDRESS=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
+
+      # Display the VNC URL
+      echo "VNC ACCESS URL: http://${IP_ADDRESS}:6080/vnc.html"
+      echo ""
+      echo "=============================================================="
+      echo "README INFORMATION:"
+      echo "=============================================================="
+      echo ""
+
+      # Display the README file
+      cat /home/ubuntu/README.txt
+
+      # Keep the information on screen
+      echo ""
+      echo "=============================================================="
+      echo "Press Enter to continue to login prompt..."
+      echo "=============================================================="
+
+      # Wait for a keypress (optional)
+      read
+
+      # Clear the screen and return to login prompt
+      clear
+      CONNECTIONINFO
+
+    # Make the script executable
+    - chmod +x /target/usr/local/bin/display-connection-info.sh
+
+    # Create a service to run the connection info display after all setup is complete
+    - |
+      cat > /target/etc/systemd/system/display-connection-info.service << 'EOF'
+      [Unit]
+      Description=Display connection information on console
+      After=run-software-setup.service multi-user.target
+      Requires=run-software-setup.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/display-connection-info.sh
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+
+    # Enable the services
+    - curtin in-target --target=/target -- systemctl enable run-vnc-setup.service
+    - curtin in-target --target=/target -- systemctl enable run-software-setup.service
+    - curtin in-target --target=/target -- systemctl enable display-connection-info.service
 
   user-data:
     disable_root: true
