@@ -2,7 +2,16 @@
 
 ## Ubuntu LUKS Encrypted VM Setup Script
 
-A bash script for automatically creating and configuring an Ubuntu 24.04 virtual machine with LUKS encryption, VBoxGuestAdditions, Intune, Edge, and VSCode in VirtualBox.
+A bash script for automatically creating and configuring an Ubuntu 24.04 virtual machine in Virtualbox with:
+  - LUKS encryption
+  - VBoxGuestAdditions
+  - Intune
+  - Edge
+  - VSCode
+  - Openbox
+  - x11vnc
+  - xvfb
+  - novnc
 
 Access to the host is provided via ssh, or through a websocket VNC endpoint hosting an xvfb openbox.session.
 
