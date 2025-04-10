@@ -19,14 +19,13 @@ Relevant installed packages are accessible in the openbox.session via the right 
 
 ## MANUAL STEPS
 
-Since we are booting directly from an attached ISO, you need to confirm the autoinstall at launch.
+Since we are booting directly from an attached ISO, you need to confirm the autoinstall at the initial launch.
 We can mitigate this by using a PXE boot process:
   - Doable via TFP setup (https://www.techrepublic.com/article/enable-pxe-boot-virtualbox/)
-  - But needs to be developed.
 
-After the initial autoinstall, the box will reboot with disk encryption installed. So you need to input the disk encryption password to continue.
-
-On first boot, cloud-init will install the required packages and output the out-of-band TTY the connection details to the VNC.
+After the initial autoinstall, the box will reboot with disk encryption enabled
+  - Input the disk encryption password to continue.
+  - Cloud-init will install the required packages and output out-of-band TTY connection details to the VNC.
 
 ## Workflow Diagram
 
