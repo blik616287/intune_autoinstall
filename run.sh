@@ -288,11 +288,11 @@ autoinstall:
       if [ "$uuid" = "Not Settable" ] || [ -z "$uuid" ]; then
           echo "System UUID not available after $MAX_UUID_RETRIES attempts. Using random identifier."
           # Generate a random string for the hostname suffix
-          random_suffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 12 | head -n 1)
-          last_9_digits=$random_suffix
+          random_suffix=$$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 12 | head -n 1)
+          last_9_digits=$${random_suffix: -9}
       else
-          # Extract the last 12 characters of the serial number
-          last_9_digits="${uuid: -12}"
+          # Extract the last 9 characters of the serial number
+          last_9_digits="${uuid: -9}"
       fi
 
       # Create the new hostname by prefixing 'OXQLNX-' with the last 9 digits
@@ -311,14 +311,13 @@ autoinstall:
       # Remove conflicting Microsoft Edge repository file
       sudo rm -f /etc/apt/sources.list.d/microsoft-edge-stable.list || true
 
-      # Install Microsoft Edge Browser
+      # Install Microsoft Edge Browser and Intune
       sudo mkdir -p /etc/apt/keyrings
       curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/microsoft.gpg
       echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge/ stable main" | sudo tee /etc/apt/sources.list.d/microsoft-edge.list > /dev/null
+      sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" >> /etc/apt/sources.list.d/microsoft-ubuntu-$(lsb_release -cs)-prod.list'
       sudo apt update
       sudo apt install microsoft-edge-stable -y
-
-      # Install Microsoft Intune app
       sudo apt install intune-portal -y
 
       # Install 1Password:
