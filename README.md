@@ -26,6 +26,7 @@ We can mitigate this by using a PXE boot process:
 After the initial autoinstall, the box will reboot with disk encryption enabled
   - Input the disk encryption password to continue.
   - Cloud-init will install the required packages and output out-of-band TTY connection details to the VNC.
+  - In order for the MDM changes to full take place (e.g., the hostname change), reboot and enter your disk encryption password one more time.
 
 ## Workflow Diagram
 
