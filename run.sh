@@ -13,7 +13,7 @@ FILE_URL="${FILE_URL:-https://cofractal-ewr.mm.fcix.net/ubuntu-releases/24.04.2/
 VM_MEMORY="${VM_MEMORY:-4096}"
 VM_CPUS="${VM_CPUS:-2}"
 VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
-USERNAME="${USERNAME:-ubuntu}"
+USERN="${USERN:-ubuntu}"
 PASSWORD="${PASSWORD:-ubuntu}"
 HOSTNAME="${HOSTNAME:-ubuntu-encrypted}"
 
@@ -72,7 +72,7 @@ autoinstall:
     layout: us
   identity:
     hostname: ${HOSTNAME}
-    username: ${USERNAME}
+    username: ${USERN}
     password: $(echo ${PASSWORD} | openssl passwd -6 -stdin)
   ssh:
     install-server: true
@@ -110,8 +110,8 @@ autoinstall:
     - echo 'Autoinstall in progress...'
   late-commands:
     # Configure sudo access for user
-    - echo '${USERNAME} ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/${USERNAME}
-    - chmod 440 /target/etc/sudoers.d/${USERNAME}
+    - echo '${USERN} ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/${USERN}
+    - chmod 440 /target/etc/sudoers.d/${USERN}
 
     # Configure SSH with X11 forwarding
     - sed -i 's/#X11Forwarding no/X11Forwarding yes/' /target/etc/ssh/sshd_config
@@ -119,8 +119,8 @@ autoinstall:
     - sed -i 's/#X11UseLocalhost yes/X11UseLocalhost yes/' /target/etc/ssh/sshd_config
 
     # Ensure user exists in the installed system
-    - curtin in-target --target=/target -- bash -c "getent passwd ${USERNAME} > /dev/null || useradd -m -s /bin/bash ${USERNAME}"
-    - curtin in-target --target=/target -- bash -c "echo '${USERNAME}:${PASSWORD}' | chpasswd"
+    - curtin in-target --target=/target -- bash -c "getent passwd ${USERN} > /dev/null || useradd -m -s /bin/bash ${USERN}"
+    - curtin in-target --target=/target -- bash -c "echo '${USERN}:${PASSWORD}' | chpasswd"
 
     # Create a script to run as the user after installation
     - |
@@ -132,17 +132,17 @@ autoinstall:
       sudo apt update
 
       # Create a directory for VNC
-      mkdir -p /home/${USERNAME}/.vnc
+      mkdir -p /home/${USERN}/.vnc
 
       # Set a VNC password (with better command structure)
-      x11vnc -storepasswd ${PASSWORD} /home/${USERNAME}/.vnc/passwd
+      x11vnc -storepasswd ${PASSWORD} /home/${USERN}/.vnc/passwd
 
       # Make sure the password file has proper permissions
-      chmod 600 /home/${USERNAME}/.vnc/passwd
-      chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.vnc/passwd
+      chmod 600 /home/${USERN}/.vnc/passwd
+      chown ${USERN}:${USERN} /home/${USERN}/.vnc/passwd
 
       # Create an improved Openbox session script
-      cat > /home/${USERNAME}/.vnc/xstartup << 'EOF'
+      cat > /home/${USERN}/.vnc/xstartup << 'EOF'
       #!/bin/bash
       # Unset session manager and D-Bus to prevent issues
       unset SESSION_MANAGER
@@ -154,7 +154,7 @@ autoinstall:
       EOF
 
       # Make the startup script executable
-      chmod +x /home/${USERNAME}/.vnc/xstartup
+      chmod +x /home/${USERN}/.vnc/xstartup
 
       # Create a systemd service file for Xvfb with improved parameters
       cat > /tmp/xvfb.service << 'EOF'
@@ -184,7 +184,7 @@ autoinstall:
       User=ubuntu
       Environment=DISPLAY=:1
       ExecStartPre=/bin/sleep 3
-      ExecStart=/usr/bin/x11vnc -display :1 -rfbauth /home/${USERNAME}/.vnc/passwd -forever -shared -noxdamage -noxrecord -noxfixes -desktop "Virtual Desktop" -localhost -o /home/${USERNAME}/.vnc/x11vnc.log
+      ExecStart=/usr/bin/x11vnc -display :1 -rfbauth /home/${USERN}/.vnc/passwd -forever -shared -noxdamage -noxrecord -noxfixes -desktop "Virtual Desktop" -localhost -o /home/${USERN}/.vnc/x11vnc.log
       Restart=on-failure
       RestartSec=2
 
@@ -202,9 +202,9 @@ autoinstall:
       [Service]
       User=ubuntu
       Environment=DISPLAY=:1
-      Environment=HOME=/home/${USERNAME}
+      Environment=HOME=/home/${USERN}
       ExecStartPre=/bin/sleep 4
-      ExecStart=/bin/bash /home/${USERNAME}/.vnc/xstartup
+      ExecStart=/bin/bash /home/${USERN}/.vnc/xstartup
       Restart=on-failure
       RestartSec=2
 
@@ -345,8 +345,8 @@ autoinstall:
       sudo apt update && sudo apt install code -y
 
       # Create Openbox menu with application shortcuts
-      mkdir -p /home/${USERNAME}/.config/openbox
-      cat > /home/${USERNAME}/.config/openbox/menu.xml << 'MENUXML'
+      mkdir -p /home/${USERN}/.config/openbox
+      cat > /home/${USERN}/.config/openbox/menu.xml << 'MENUXML'
       <?xml version="1.0" encoding="UTF-8"?>
       <openbox_menu xmlns="http://openbox.org/3.4/menu">
       <menu id="root-menu" label="Openbox 3">
@@ -380,7 +380,7 @@ autoinstall:
       MENUXML
 
       # Set proper ownership for Openbox config
-      chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.config
+      chown -R ${USERN}:${USERN} /home/${USERN}/.config
 
       # Restart Openbox to apply the new menu
       if systemctl is-active --quiet openbox.service; then
@@ -428,7 +428,7 @@ autoinstall:
 
     # Create README file
     - |
-      cat > /target/home/${USERNAME}/README.txt << 'README'
+      cat > /target/home/${USERN}/README.txt << 'README'
       SETUP INFORMATION
       =================
 
@@ -468,7 +468,7 @@ autoinstall:
       To restart all services:
       sudo systemctl restart xvfb openbox x11vnc novnc
       README
-    - chown 1000:1000 /target/home/${USERNAME}/README.txt
+    - chown 1000:1000 /target/home/${USERN}/README.txt
 
     # Create a script to display connection information to the console
     - |
@@ -610,14 +610,14 @@ VBoxManage startvm "${VM_NAME}"
 echo "Installation started."
 echo "---------------------------------------------------------------"
 echo "VM Name: ${VM_NAME}"
-echo "Username: ${USERNAME}"
+echo "Username: ${USERN}"
 echo "Password: ${PASSWORD} (also used for disk encryption)"
 echo "Note: The VM will reboot after installation and you'll need to enter"
 echo "      the encryption password. The installation will proceed automatically."
 echo ""
 echo "After installation is complete, you can access:"
 echo "1. The Openbox desktop via noVNC: http://VM-IP-ADDRESS:6080/vnc.html"
-echo "2. X11 applications via SSH with X11 forwarding: ssh -X ${USERNAME}@VM-IP-ADDRESS"
+echo "2. X11 applications via SSH with X11 forwarding: ssh -X ${USERN}@VM-IP-ADDRESS"
 echo "   (You'll need an X server running on your local machine for option 2)"
 echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code"
 echo "---------------------------------------------------------------"
