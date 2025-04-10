@@ -308,15 +308,15 @@ autoinstall:
       sudo apt update
       sudo apt install curl wget gpg -y
 
+      # Remove conflicting Microsoft Edge repository file
+      sudo rm -f /etc/apt/sources.list.d/microsoft-edge-stable.list || true
+
       # Install Microsoft Edge Browser
-      curl -s https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-      sudo install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/
-      sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" >> /etc/apt/sources.list.d/microsoft-ubuntu-$(lsb_release -cs)-prod.list'
+      sudo mkdir -p /etc/apt/keyrings
+      curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/microsoft.gpg
+      echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge/ stable main" | sudo tee /etc/apt/sources.list.d/microsoft-edge.list > /dev/null
       sudo apt update
-      sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
-      sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-stable.list'
-      sudo rm microsoft.gpg
-      sudo apt update && sudo apt install microsoft-edge-stable -y
+      sudo apt install microsoft-edge-stable -y
 
       # Install Microsoft Intune app
       sudo apt install intune-portal -y
@@ -384,6 +384,9 @@ autoinstall:
       if systemctl is-active --quiet openbox.service; then
         sudo systemctl restart openbox.service
       fi
+
+      # Reboot for hostname changes to take effect
+      sudo reboot
       SOFTWARESCRIPT
 
     # Make the script executable
@@ -520,13 +523,13 @@ autoinstall:
       cat > /target/etc/systemd/system/display-connection-info.service << 'EOF'
       [Unit]
       Description=Display connection information on console
-      After=run-software-setup.service multi-user.target
-      Requires=run-software-setup.service
+      After=network-online.target
+      Wants=network-online.target
 
       [Service]
       Type=oneshot
       ExecStart=/usr/local/bin/display-connection-info.sh
-      RemainAfterExit=yes
+      RemainAfterExit=no
 
       [Install]
       WantedBy=multi-user.target
