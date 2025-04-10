@@ -15,7 +15,7 @@ VM_CPUS="${VM_CPUS:-2}"
 VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 USERN="${USERN:-ubuntu}"
 PASSWORD="${PASSWORD:-ubuntu}"
-HOSTNAME="${HOSTNAME:-ubuntu-encrypted}"
+HOSTN="${HOSTN:-ubuntu-encrypted}"
 
 # Check if we need to download the ISO
 ISO_NAME=$(basename "$FILE_URL")
@@ -71,7 +71,7 @@ autoinstall:
   keyboard:
     layout: us
   identity:
-    hostname: ${HOSTNAME}
+    hostname: ${HOSTN}
     username: ${USERN}
     password: $(echo ${PASSWORD} | openssl passwd -6 -stdin)
   ssh:
