@@ -4,6 +4,10 @@
 
 A bash script for automatically creating and configuring an Ubuntu 24.04 virtual machine with LUKS encryption, VBoxGuestAdditions, Intune, Edge, and VSCode in VirtualBox.
 
+Access to the host is provided via ssh, or through a websocket VNC endpoint hosting an xvfb openbox.session.
+
+Relevant installed packages are accessible in the openbox.session via the right mouse button click menu context. 
+
 ## Workflow Diagram
 
 ```mermaid
