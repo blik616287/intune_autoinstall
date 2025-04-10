@@ -1,0 +1,22 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!run.sh
+!README.md
+!*.git*
+
+# Even if they are in subdirectories
+!*/
+
+# Ignore all files and directories that match these patterns
+*.iso
+*.vdi
+*.vbox
+*.vbox-prev
+*.log
+*.tmp
+/temp/
+/.virtualbox/
+/seed.iso
