@@ -30,8 +30,8 @@ To access VNC:
   - Log into the device on the Vbox console
   - Run command: ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1
     - This gives you the bridged IP address of the device
-  - VNC: http://<ip address>:6080/vnc.html 
-  - SSH: ssh -X <username>@<ip address> '<command>'
+  - VNC: http://ipaddress:6080/vnc.html 
+  - SSH: ssh -X username@ipaddress 'command'
 
 ## Prerequisites
 
