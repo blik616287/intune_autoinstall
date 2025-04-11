@@ -23,141 +23,123 @@ Since we are booting directly from an attached ISO, you need to confirm the auto
 We can mitigate this by using a PXE boot process:
   - Doable via TFP setup (https://www.techrepublic.com/article/enable-pxe-boot-virtualbox/)
 
-After the initial autoinstall, the box will reboot with disk encryption enabled
-  - Input the disk encryption password to continue.
-  - This reboot will proceed to install the MDM handled packages
-  - After completion it will reboot
+After the autoinstall, the box will reboot with disk encryption enabled
+  - Input the disk encryption password to continue, and you're good to go.
 
-After the cloud-init reboot
-  - Input the disk encryption password to continue.
-  - Out-of-band TTY connection details will be printed for the VNC.
+To access VNC:
+  - Log into the device on the Vbox console
+  - Run command: ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1
+    - This gives you the bridged IP address of the device
+  - VNC: http://<ip address>:6080/vnc.html 
+  - SSH: ssh -X <username>@<ip address> '<command>'
 
-## Workflow Diagram
+## Prerequisites
 
-```mermaid
-flowchart TD
-    A[Start Script] --> B{Check for ISO}
-    B -->|Not Found| C[Download Ubuntu ISO]
-    B -->|Found| D[Use Existing ISO]
-    C --> D
-    D --> E{Check VirtualBox Extension Pack}
-    E -->|Not Installed| F[Install VBox Extension Pack]
-    E -->|Installed| G[Proceed]
-    F --> G
-    G --> H[Create autoinstall config files]
-    H --> I[Generate cloud-init ISO]
-    I --> J[Create and configure VM]
-    J --> K[Attach Ubuntu ISO & cloud-init ISO]
-    K --> L[Start VM]
-    L --> M[Ubuntu installation with LUKS]
-    M --> N[First boot]
-    N --> O[Setup VNC & Desktop]
-    O --> P[Install Software]
-    P --> Q[Configure System]
-    Q --> R[Ready for Use]
-    
-    subgraph "Post-Installation"
-    S[Web Browser Access] 
-    T[SSH with X11]
-    U[Remote Desktop]
-    end
-    
-    R --> S
-    R --> T
-    R --> U
-```
-
-## Features
-
-- **Full Disk Encryption**: Automatically sets up LUKS encryption during installation
-- **Remote Desktop Access**: Configures noVNC for browser-based remote desktop access
-- **Automated Installation**: Zero-touch installation of Ubuntu Server
-- **Software Suite**: Automatically installs and configures:
-  - Microsoft Edge browser
-  - Microsoft Intune Portal
-  - 1Password CLI
-  - Visual Studio Code
-  - X11 VNC server
-  - NoVNC web client
-  - Openbox window manager
-- **System Configuration**: 
-  - Sets up bridged networking for external access
-  - Configures custom hostname based on system UUID
-  - Enables SSH server with X11 forwarding
-  - Creates graphical desktop environment with application shortcuts
-
-## Requirements
-
-- VirtualBox (with Extension Pack)
-- Ubuntu/Debian-based host system
+- Linux host with VirtualBox installed
 - `cloud-image-utils` package (will be installed if missing)
-- Internet connection for downloading ISO and packages
+- VirtualBox Extension Pack (will be installed if missing)
+- Internet connection for downloading ISO and software packages
 
-## Usage
+## Installation
 
-1. **Basic usage with default settings**:
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/intune_autoinstall.git
+   cd intune_autoinstall
+   ```
+
+2. Run the installation script:
    ```bash
    ./run.sh
    ```
 
-2. **Customize with environment variables**:
-   ```bash
-   VM_NAME="MyUbuntu" VM_MEMORY=8192 VM_CPUS=4 VM_DISK_SIZE=50000 USERNAME="myuser" PASSWORD="mysecret" HOSTNAME="myhost" ./run.sh
-   ```
-
 ## Configuration Options
+
+The following environment variables can be set to customize the installation:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VM_NAME` | Name of the virtual machine | `Ubuntu-Encrypted` |
-| `FILE_URL` | URL for Ubuntu ISO | Ubuntu 24.04.2 URL |
-| `VM_MEMORY` | RAM allocated to VM (MB) | `4096` |
-| `VM_CPUS` | Number of CPU cores | `2` |
-| `VM_DISK_SIZE` | Disk size (MB) | `25000` |
-| `USERNAME` | Default user account | `ubuntu` |
-| `PASSWORD` | User and encryption password | `ubuntu` |
-| `HOSTNAME` | Initial hostname | `ubuntu-encrypted` |
+| VM_NAME | Name of the virtual machine | Ubuntu-Encrypted |
+| FILE_URL | URL to download Ubuntu ISO | Ubuntu 24.04.2 mirror |
+| VM_MEMORY | Memory allocation in MB | 4096 |
+| VM_CPUS | Number of CPU cores | 2 |
+| VM_DISK_SIZE | Disk size in MB | 25000 |
+| USERN | Username for the system | ubuntu |
+| PASSWORD | Password for the user (also used for disk encryption) | ubuntu |
+| HOSTN | Hostname for the system | ubuntu-encrypted |
 
-## Post-Installation Access
+Example:
+```bash
+VM_NAME="MyUbuntuVM" VM_MEMORY=8192 VM_CPUS=4 PASSWORD="secure-password" ./run.sh
+```
 
-After installation completes:
+## Workflow
 
-1. **Web Browser Access**:
-   - Get VM IP address using `ip addr show`
-   - Access desktop at: `http://VM-IP-ADDRESS:6080/vnc.html`
+```mermaid
+flowchart TD
+    A[Run Script] --> B[Initial Setup\n- Check ISO\n- Check Ext Pack\n- Process files]
+    B --> C[Create Cloud-Init\n- user-data\n- meta-data\n- Generate ISO]
+    C --> D[Create VM\n- Virtual Disk\n- Attach ISOs]
+    D --> E[Configure VM\n- Memory/CPU\n- Network\n- Boot Options]
+    E --> F[Boot VM\n- Automated Installation]
+    F --> G[First Boot\n- Decrypt Disk\n- User Login]
+    G --> H[Final Setup\n- VNC Services\n- Software Install]
+    
+    subgraph Software[Software Installed]
+        I[Microsoft Edge]
+        J[Intune Portal]
+        K[1Password]
+        L[VS Code]
+    end
+    
+    subgraph Access[Access Methods]
+        M[NoVNC Web Interface\nhttp://VM-IP:6080/vnc.html]
+        N[SSH with X11 Forwarding\nssh -X username@VM-IP]
+    end
+    
+    H --> Access
+```
 
-2. **SSH with X11 Forwarding**:
-   - Connect with: `ssh -X username@VM-IP-ADDRESS`
-   - Launch X11 applications directly
+## Post-Installation
 
-3. **VNC Service Management**:
-   ```bash
-   sudo systemctl restart xvfb.service
-   sudo systemctl restart openbox.service 
-   sudo systemctl restart x11vnc.service
-   sudo systemctl restart novnc.service
-   ```
+After installation completes, the VM will reboot. You'll need to:
+
+1. Enter the disk encryption password when prompted
+2. Once the system has booted, you can access it via:
+   - NoVNC web interface: http://VM-IP-ADDRESS:6080/vnc.html
+   - SSH with X11 forwarding: `ssh -X ubuntu@VM-IP-ADDRESS`
+
+## Project Structure
+
+- `run.sh` - Main script that orchestrates the VM creation and installation
+- `static/` - Static files used in the VM setup
+  - `novnc.service` - systemd service for NoVNC
+  - `xvfb.service` - systemd service for virtual framebuffer
+  - `setup_software.sh` - Script to install additional software
+  - `xstartup` - VNC startup configuration
+- `templates/` - Template files that will be processed with environment variables
+  - `menu.xml` - Openbox menu configuration
+  - `openbox.service` - systemd service for Openbox
+  - `x11vnc.service` - systemd service for X11VNC
+- `tmp/` - Temporary directory for generated files
 
 ## Troubleshooting
 
-If you have issues with the desktop environment:
+- If VM creation fails, check the VirtualBox logs in the VM settings
+- If installation hangs, try increasing RAM allocation with the VM_MEMORY variable
+- For network issues, try switching from bridged to NAT networking by modifying the script
 
-1. Check service status:
-   ```bash
-   systemctl status novnc
-   systemctl status xvfb
-   systemctl status x11vnc
-   systemctl status openbox
-   ```
+## Security Considerations
 
-2. Restart all services:
-   ```bash
-   sudo systemctl restart xvfb openbox x11vnc novnc
-   ```
+- The default password is insecure. Always change it for production use.
+- The disk encryption password is stored in cloud-init configuration during setup.
+- For production deployments, consider removing the installation traces from the VM after setup.
 
-## Notes
+## License
 
-- The script creates temporary files that will be cleaned up upon completion
-- The seed.iso file must be preserved until installation is complete
-- During installation, you'll need to enter the encryption password when prompted
-- The hostname will be automatically changed to format: `OXQLNX-{UUID}`
+Apache
+
+## Acknowledgments
+
+- Based on Ubuntu's cloud-init autoinstallation framework
+- VirtualBox virtualization platform
