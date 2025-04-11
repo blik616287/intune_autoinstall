@@ -72,32 +72,81 @@ Example:
 ```bash
 VM_NAME="MyUbuntuVM" VM_MEMORY=8192 VM_CPUS=4 PASSWORD="secure-password" ./run.sh
 ```
-
 ## Workflow
-
 ```mermaid
 flowchart TD
-    A[Run Script] --> B[Initial Setup\n- Check ISO\n- Check Ext Pack\n- Process files]
-    B --> C[Create Cloud-Init\n- user-data\n- meta-data\n- Generate ISO]
-    C --> D[Create VM\n- Virtual Disk\n- Attach ISOs]
-    D --> E[Configure VM\n- Memory/CPU\n- Network\n- Boot Options]
-    E --> F[Boot VM\n- Automated Installation]
-    F --> G[First Boot\n- Decrypt Disk\n- User Login]
-    G --> H[Final Setup\n- VNC Services\n- Software Install]
+    A["Run Script"] --> B["Initial Setup"]
+    B --> C["Create Cloud-Init"]
+    C --> D["Create VM"]
+    D --> E["Configure VM"]
+    E --> F["Boot VM"]
+    F --> G["First Boot"]
+    G --> H["Final Setup"]
     
-    subgraph Software[Software Installed]
-        I[Microsoft Edge]
-        J[Intune Portal]
-        K[1Password]
-        L[VS Code]
+    classDef processBox fill:#f0f8ff,stroke:#4682b4,stroke-width:2px,rx:10px,ry:10px;
+    class A,B,C,D,E,F,G,H processBox;
+    
+    subgraph Init["Initial Setup Details"]
+        B1["• Check ISO file"]
+        B2["• Check Extension Pack"]
+        B3["• Process template files"]
     end
     
-    subgraph Access[Access Methods]
-        M[NoVNC Web Interface\nhttp://VM-IP:6080/vnc.html]
-        N[SSH with X11 Forwarding\nssh -X username@VM-IP]
+    subgraph CloudInit["Cloud-Init Details"]
+        C1["• Generate user-data"]
+        C2["• Create meta-data"]
+        C3["• Build seed.iso"]
     end
     
+    subgraph VMCreate["VM Creation Details"]
+        D1["• Create virtual disk"]
+        D2["• Attach Ubuntu ISO"]
+        D3["• Attach seed.iso"]
+    end
+    
+    subgraph VMConfig["VM Configuration Details"]
+        E1["• Set memory/CPU"]
+        E2["• Configure networking"]
+        E3["• Set boot options"]
+    end
+    
+    subgraph Installation["Installation Process"]
+        F1["• Automated Ubuntu install"]
+        F2["• Configure disk encryption"]
+        F3["• Install packages"]
+    end
+    
+    subgraph Boot["First Boot Process"]
+        G1["• Enter encryption password"]
+        G2["• System initialization"]
+        G3["• User login"]
+    end
+    
+    subgraph Setup["Final Setup Process"]
+        H1["• Start VNC services"]
+        H2["• Configure software"]
+        H3["• Install Guest Additions"]
+    end
+    
+    subgraph Software["Software Installed"]
+        direction LR
+        I["Microsoft Edge"] --- J["Intune Portal"] --- K["1Password"] --- L["VS Code"]
+    end
+    
+    subgraph Access["Access Methods"]
+        direction LR
+        M["NoVNC Web Interface<br>(http://VM-IP:6080/vnc.html)"] --- N["SSH with X11 Forwarding<br>(ssh -X username@VM-IP)"]
+    end
+    
+    B ~~~ Init
+    C ~~~ CloudInit
+    D ~~~ VMCreate
+    E ~~~ VMConfig
+    F ~~~ Installation
+    G ~~~ Boot
+    H ~~~ Setup
     H --> Access
+    H --> Software
 ```
 
 ## Post-Installation
