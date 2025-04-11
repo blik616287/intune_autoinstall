@@ -57,7 +57,7 @@ get_file_data() {
   local serialized="${SERIALIZED_FILE_DATA}"
   echo "Looking for '${filename}' in serialized data" >&2
   local pattern="${filename}:::::([^;;;;;]*)"
-  if [[ "${serialized}" =~ ${pattern} ]]; then
+  if [[ "${serialized}" =~ "${pattern}" ]]; then
     echo "${BASH_REMATCH[1]}"
     return 0
   else
