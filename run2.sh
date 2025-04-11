@@ -118,7 +118,9 @@ if ! command -v cloud-localds &> /dev/null; then
 fi
 
 # Create a temporary directory for our configuration files
-TEMP_DIR=$(mktemp -d)
+TEMP_DIR="${PWD}/tmp"
+rm -rf ${TEMP_DIR} || true
+mkdir -p ${TEMP_DIR}
 echo "Working directory: ${TEMP_DIR}"
 
 # Function to clean up on exit
