@@ -22,46 +22,46 @@ declare -A file_data
 # Function to process files in static and templates directories
 process_directories() {
   for dir in "static" "templates"; do
-    if [ -d "$dir" ]; then
-      mapfile -t files < <(find "$dir" -type f)
+    if [ -d "${dir}" ]; then
+      mapfile -t files < <(find "${dir}" -type f)
       for file in "${files[@]}"; do
-        filename=$(basename "$file")
-        if [ "$dir" = "templates" ]; then
-          b64_content=$(envsubst < "$file" | bzip2 -c | base64 -w 0)
+        filename=$(basename "${file}")
+        if [ "${dir}" = "templates" ]; then
+          b64_content=$(envsubst < "${file}" | bzip2 -c | base64 -w 0)
         else
-          b64_content=$(bzip2 -c "$file" | base64 -w 0)
+          b64_content=$(bzip2 -c "${file}" | base64 -w 0)
         fi
-        file_data["$filename"]="$b64_content"
-        echo "Adding $filename to file_data array" >&2
+        file_data["${filename}"]="${b64_content}"
+        echo "Adding ${filename} to file_data array" >&2
       done
     else
-      echo "Warning: $dir directory not found." >&2
+      echo "Warning: ${dir} directory not found." >&2
     fi
   done
   echo "Array contents after processing:" >&2
   for key in "${!file_data[@]}"; do
-    echo "  $key is present" >&2
+    echo "  ${key} is present" >&2
   done
   serialized=""
   for key in "${!file_data[@]}"; do
-    serialized+="$key:::::${file_data[$key]};;;;;"
+    serialized+="${key}:::::${file_data[${key}]};;;;;"
   done
-  export SERIALIZED_FILE_DATA="$serialized"
+  export SERIALIZED_FILE_DATA="${serialized}"
   echo "Serialized data exported as SERIALIZED_FILE_DATA" >&2
   return 0
 }
 
 # Helper function to retrieve data
 get_file_data() {
-  local filename="$1"
-  local serialized="$SERIALIZED_FILE_DATA"
-  echo "Looking for '$filename' in serialized data" >&2
-  local pattern="$filename:::::([^;;;;;]*)"
-  if [[ "$serialized" =~ $pattern ]]; then
+  local filename="${1}"
+  local serialized="${SERIALIZED_FILE_DATA}"
+  echo "Looking for '${filename}' in serialized data" >&2
+  local pattern="${filename}:::::([^;;;;;]*)"
+  if [[ "${serialized}" =~ ${pattern} ]]; then
     echo "${BASH_REMATCH[1]}"
     return 0
   else
-    echo "Error: File '$filename' not found in the processed data." >&2
+    echo "Error: File '${filename}' not found in the processed data." >&2
     return 1
   fi
 }
@@ -70,11 +70,11 @@ export -f get_file_data
 # Helper function to decode b64 data
 decode_file_data() {
   local filename="$1"
-  local b64_content=$(get_file_data "$filename")
+  local b64_content=$(get_file_data "${filename}")
   if [ $? -ne 0 ]; then
     return 1
   fi
-  echo "$b64_content" | base64 -d | bunzip2
+  echo "${b64_content}" | base64 -d | bunzip2
   return $?
 }
 
