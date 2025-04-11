@@ -169,13 +169,12 @@ write_files:
   permissions: '0755'
 - encoding: b64
   content: $(get_file_data xstartup)
-  owner: ${USERN}:${USERN}
+  owner: root:root
   path: /tmp/xstartup.bz2
   permissions: '0755'
-  defer: yes
 - encoding: b64
   content: $(get_file_data menu.xml)
-  owner: ${USERN}:${USERN}
+  owner: root:root
   path: /tmp/menu.xml.bz2
   permissions: '0644'
 autoinstall:
@@ -225,18 +224,18 @@ autoinstall:
     - cp /tmp/*.bz2 /target/tmp/
 
     # Configure sudo access for user
-    - echo "${USERN} ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/${USERN}
-    - chmod 440 /target/etc/sudoers.d/${USERN}
+    - curtin in-target --target=/target -- bash -c "echo \"${USERN} ALL=(ALL) NOPASSWD:ALL\" > /target/etc/sudoers.d/${USERN}"
+    - curtin in-target --target=/target -- bash -c "chmod 440 /target/etc/sudoers.d/${USERN}"
 
     # Configure SSH with X11 forwarding
-    - sed -i 's/#X11Forwarding no/X11Forwarding yes/' /target/etc/ssh/sshd_config
-    - sed -i 's/#X11DisplayOffset 10/X11DisplayOffset 10/' /target/etc/ssh/sshd_config
-    - sed -i 's/#X11UseLocalhost yes/X11UseLocalhost yes/' /target/etc/ssh/sshd_config
+    - curtin in-target --target=/target -- bash -c "sed -i 's/#X11Forwarding no/X11Forwarding yes/' /target/etc/ssh/sshd_config"
+    - curtin in-target --target=/target -- bash -c "sed -i 's/#X11DisplayOffset 10/X11DisplayOffset 10/' /target/etc/ssh/sshd_config"
+    - curtin in-target --target=/target -- bash -c "sed -i 's/#X11UseLocalhost yes/X11UseLocalhost yes/' /target/etc/ssh/sshd_config"
     - curtin in-target --target=/target -- systemctl restart ssh
 
     # Ensure user exists in the installed system
     - curtin in-target --target=/target -- bash -c "getent passwd ${USERN} > /dev/null || useradd -m -s /bin/bash ${USERN}"
-    - curtin in-target --target=/target -- bash -c "echo '${USERN}:${PASSWORD}' | chpasswd"
+    - curtin in-target --target=/target -- bash -c "echo \"${USERN}:${PASSWORD}\" | chpasswd"
 
     # Eunsure bzip2 is present
     - curtin in-target --target=/target -- bash -c "apt update"
