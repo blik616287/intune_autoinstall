@@ -8,6 +8,7 @@ export TIMEZONE="UTC"
 # Configuration variables
 export VM_NAME="${VM_NAME:-Ubuntu-Encrypted}"
 export FILE_URL="${FILE_URL:-https://cofractal-ewr.mm.fcix.net/ubuntu-releases/24.04.2/ubuntu-24.04.2-live-server-amd64.iso}"
+export CHECKSUMS="${CHECKSUMS:-https://releases.ubuntu.com/24.04.2/SHA256SUMS}"
 export VM_MEMORY="${VM_MEMORY:-4096}"
 export VM_CPUS="${VM_CPUS:-2}"
 export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
@@ -94,6 +95,27 @@ else
 fi
 ISO_PATH="$(pwd)/${ISO_NAME}"
 echo "Using Ubuntu ISO: ${ISO_PATH}"
+
+# Calculate SHA256 checksum of the ISO file
+echo "Calculating SHA256 checksum for $ISO_NAME..."
+CHECKSUM_OUTPUT_FILE="$ISO_NAME.sha256"
+wget -q "$CHECKSUMS" -O "$CHECKSUM_FILE"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to download SHA256SUMS file."
+    exit 1
+fi
+echo "Calculating SHA256 checksum for $ISO_NAME..."
+ISO_CHECKSUM=$(sha256sum "$ISO_NAME" | cut -d' ' -f1)
+EXPECTED_CHECKSUM=$(grep "$ISO_NAME" "$CHECKSUM_FILE" | cut -d' ' -f1)
+if [ -z "$EXPECTED_CHECKSUM" ]; then
+    echo "Warning: No matching entry for '$ISO_NAME' found in SHA256SUMS file."
+    echo "Available ISO files in SHA256SUMS:"
+    cat "$CHECKSUM_FILE" | awk '{print $2}'
+    rm -rf "$TEMP_DIR"
+    exit 1
+fi
+echo "Local ISO checksum: $ISO_CHECKSUM"
+echo "Expected checksum:  $EXPECTED_CHECKSUM"
 
 # Check if VirtualBox Extension Pack is installed
 if VBoxManage list extpacks | grep -q "Oracle VM VirtualBox Extension Pack"; then
