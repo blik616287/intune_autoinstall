@@ -106,8 +106,8 @@ else
     echo "Downloading Extension Pack for VirtualBox ${major_version}.${minor_version}..."
     curl -O "https://download.virtualbox.org/virtualbox/${major_version}.${minor_version}/Oracle_VM_VirtualBox_Extension_Pack-${vbox_version}.vbox-extpack"
     echo "Installing Extension Pack..."
-    sudo VBoxManage extpack install --replace Oracle_VM_VirtualBox_Extension_Pack-${vbox_version}.vbox-extpack
-    rm Oracle_VM_VirtualBox_Extension_Pack-${vbox_version}.vbox-extpack
+    sudo VBoxManage extpack install --replace "Oracle_VM_VirtualBox_Extension_Pack-${vbox_version}.vbox-extpack"
+    rm "Oracle_VM_VirtualBox_Extension_Pack-${vbox_version}.vbox-extpack"
     echo "VirtualBox Extension Pack installation complete."
 fi
 
@@ -119,8 +119,8 @@ fi
 
 # Create a temporary directory for our configuration files
 TEMP_DIR="${PWD}/tmp"
-rm -rf ${TEMP_DIR} || true
-mkdir -p ${TEMP_DIR}
+rm -rf "${TEMP_DIR}" || true
+mkdir -p "${TEMP_DIR}"
 echo "Working directory: ${TEMP_DIR}"
 
 # Function to clean up on exit
@@ -342,7 +342,7 @@ VBoxManage modifyvm "${VM_NAME}" --rtcuseutc on
 
 # Create and attach virtual disk
 echo "Creating virtual disk..."
-VM_DISK=$(VBoxManage list systemproperties | grep "Default machine folder" | cut -d':' -f2 | xargs)/${VM_NAME}/${VM_NAME}.vdi
+VM_DISK="$(VBoxManage list systemproperties | grep "Default machine folder" | cut -d':' -f2 | xargs)/${VM_NAME}/${VM_NAME}.vdi"
 VBoxManage createmedium disk --filename "${VM_DISK}" --size "${VM_DISK_SIZE}"
 
 # Attach storage controllers
