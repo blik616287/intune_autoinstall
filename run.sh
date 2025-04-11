@@ -274,7 +274,7 @@ autoinstall:
   user-data:
     disable_root: true
     runcmd:
-      # Install software (to run after reboot)
+      # Install MDM software
       - bunzip2 -c /tmp/setup_software.sh.bz2 > /usr/local/bin/setup-software.sh
       - chmod 755 /usr/local/bin/setup-software.sh
       - su -c "/usr/local/bin/setup-software.sh" ubuntu
