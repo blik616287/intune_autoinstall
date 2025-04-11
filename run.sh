@@ -278,6 +278,10 @@ autoinstall:
       - mount /dev/sr2 /mnt/cdrom
       - cd /mnt/cdrom && ./VBoxLinuxAdditions.run
 
+      # Set nomodeset boot parameter for framebuffer fix on tty console
+      - sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/s/"[^"]*"/"&'"$(grep GRUB_CMDLINE_LINUX_DEFAULT /etc/default/grub | grep -q nomodeset || echo " nomodeset")"'"/' /etc/default/grub
+      - update-grub
+
       # Reboot
       - reboot
 EOF
