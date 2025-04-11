@@ -86,67 +86,86 @@ flowchart TD
     classDef processBox fill:#f0f8ff,stroke:#4682b4,stroke-width:2px,rx:10px,ry:10px;
     class A,B,C,D,E,F,G,H processBox;
     
+    B --- Init
     subgraph Init["Initial Setup Details"]
+        direction TB
         B1["• Check ISO file"]
         B2["• Check Extension Pack"]
         B3["• Process template files"]
+        B1 --- B2 --- B3
     end
     
+    C --- CloudInit
     subgraph CloudInit["Cloud-Init Details"]
+        direction TB
         C1["• Generate user-data"]
         C2["• Create meta-data"]
         C3["• Build seed.iso"]
+        C1 --- C2 --- C3
     end
     
+    D --- VMCreate
     subgraph VMCreate["VM Creation Details"]
+        direction TB
         D1["• Create virtual disk"]
         D2["• Attach Ubuntu ISO"]
         D3["• Attach seed.iso"]
+        D1 --- D2 --- D3
     end
     
+    E --- VMConfig
     subgraph VMConfig["VM Configuration Details"]
+        direction TB
         E1["• Set memory/CPU"]
         E2["• Configure networking"]
         E3["• Set boot options"]
+        E1 --- E2 --- E3
     end
     
+    F --- Installation
     subgraph Installation["Installation Process"]
+        direction TB
         F1["• Automated Ubuntu install"]
         F2["• Configure disk encryption"]
         F3["• Install packages"]
+        F1 --- F2 --- F3
     end
     
+    G --- Boot
     subgraph Boot["First Boot Process"]
+        direction TB
         G1["• Enter encryption password"]
         G2["• System initialization"]
         G3["• User login"]
+        G1 --- G2 --- G3
     end
     
+    H --- Setup
     subgraph Setup["Final Setup Process"]
+        direction TB
         H1["• Start VNC services"]
         H2["• Configure software"]
         H3["• Install Guest Additions"]
+        H1 --- H2 --- H3
     end
     
-    subgraph Software["Software Installed"]
-        direction LR
-        I["Microsoft Edge"] --- J["Intune Portal"] --- K["1Password"] --- L["VS Code"]
-    end
-    
-    subgraph Access["Access Methods"]
-        direction LR
-        M["NoVNC Web Interface"] --- N["SSH with X11 Forwarding"]
-    end
-    
-    B ~~~ Init
-    C ~~~ CloudInit
-    D ~~~ VMCreate
-    E ~~~ VMConfig
-    F ~~~ Installation
-    G ~~~ Boot
-    H ~~~ Setup
-    H --> Access
     H --> Software
+    subgraph Software["Software Installed"]
+        direction TB
+        I["Microsoft Edge"]
+        J["Intune Portal"]
+        K["1Password"]
+        L["VS Code"]
+        I --- J --- K --- L
+    end
+    
+    H --> Access
+    subgraph Access["Access Methods"]
+        direction TB
+        M["NoVNC Web Interface"]
+        N["SSH with X11 Forwarding"]
+        M --- N
+    end
 ```
 
 ## Post-Installation
