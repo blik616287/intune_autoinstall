@@ -135,7 +135,7 @@ flowchart TD
     
     subgraph Access["Access Methods"]
         direction LR
-        M["NoVNC Web Interface<br>http://VM-IP:6080/vnc.html"] --- N["SSH with X11 Forwarding<br>ssh -X username@VM-IP"]
+        M["NoVNC Web Interface"] --- N["SSH with X11 Forwarding"]
     end
     
     B ~~~ Init
