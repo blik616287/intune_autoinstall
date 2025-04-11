@@ -26,7 +26,7 @@ We can mitigate this by using a PXE boot process:
 After the autoinstall, the box will reboot with disk encryption enabled
   - Input the disk encryption password to continue, and you're good to go.
 
-To access VNC:
+To access VNC and SSH:
   - Log into the device on the Vbox console
   - Run command: ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1
     - This gives you the bridged IP address of the device
