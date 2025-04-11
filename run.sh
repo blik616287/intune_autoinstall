@@ -77,7 +77,6 @@ autoinstall:
   ssh:
     install-server: true
     allow-pw: true
-  # Network configuration (for consistent interface names)
   network:
     network:
       version: 2
@@ -104,8 +103,6 @@ autoinstall:
     - build-essential
     - dkms
     - linux-headers-generic
-    - virtualbox-guest-utils
-    - virtualbox-guest-x11
   early-commands:
     - echo 'Autoinstall in progress...'
   late-commands:
@@ -117,11 +114,19 @@ autoinstall:
     - sed -i 's/#X11Forwarding no/X11Forwarding yes/' /target/etc/ssh/sshd_config
     - sed -i 's/#X11DisplayOffset 10/X11DisplayOffset 10/' /target/etc/ssh/sshd_config
     - sed -i 's/#X11UseLocalhost yes/X11UseLocalhost yes/' /target/etc/ssh/sshd_config
-
+    - curtin in-target --target=/target -- bash -c "systemctl restart ssh"
+    
     # Ensure user exists in the installed system
     - curtin in-target --target=/target -- bash -c "getent passwd ${USERN} > /dev/null || useradd -m -s /bin/bash ${USERN}"
     - curtin in-target --target=/target -- bash -c "echo '${USERN}:${PASSWORD}' | chpasswd"
 
+    # Ensure VNC dependancies are present
+    - curtin in-target --target=/target -- bash -c "mkdir -p /home/${USERN}/.vnc"
+    - curtin in-target --target=/target -- bash -c "x11vnc -storepasswd ${PASSWORD} /home/${USERN}/.vnc/passwd"
+    - curtin in-target --target=/target -- bash -c "chmod 600 /home/${USERN}/.vnc/passwd"
+    - curtin in-target --target=/target -- bash -c "chown ${USERN}:${USERN} /home/${USERN}/.vnc/passwd"
+
+    
     # Create a script to run as the user after installation
     - |
       cat > /target/usr/local/bin/setup-vnc.sh << 'SETUPSCRIPT'

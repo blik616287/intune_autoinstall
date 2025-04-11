@@ -1,0 +1,13 @@
+[Unit]
+Description=Run software setup script on first boot
+After=network.target run-vnc-setup.service
+Requires=run-vnc-setup.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-software.sh
+User=ubuntu
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

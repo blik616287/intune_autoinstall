@@ -4,6 +4,9 @@
 # But not these files...
 !.gitignore
 !run.sh
+!run2.sh
+!/static/*
+!/templates/*
 !README.md
 !*.git*
 

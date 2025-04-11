@@ -1,0 +1,15 @@
+[Unit]
+Description=X11 VNC Server
+After=xvfb.service
+Requires=xvfb.service
+
+[Service]
+User=${USERN}
+Environment=DISPLAY=:1
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/x11vnc -display :1 -rfbauth /home/${USERN}/.vnc/passwd -forever -shared -noxdamage -noxrecord -noxfixes -desktop "Virtual Desktop" -localhost -o /home/${USERN}/.vnc/x11vnc.log
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

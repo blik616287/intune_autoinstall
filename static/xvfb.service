@@ -1,0 +1,13 @@
+[Unit]
+Description=X Virtual Frame Buffer
+After=network.target
+
+[Service]
+User=ubuntu
+ExecStartPre=/bin/sleep 2
+ExecStart=/usr/bin/Xvfb :1 -screen 0 1280x720x24 -ac -extension GLX
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=NoVNC WebSocket Proxy
+After=x11vnc.service
+Requires=x11vnc.service
+
+[Service]
+User=ubuntu
+ExecStart=/usr/bin/websockify --web=/usr/share/novnc/ 6080 localhost:5900
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

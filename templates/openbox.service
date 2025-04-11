@@ -1,0 +1,16 @@
+[Unit]
+Description=Openbox Window Manager
+After=xvfb.service
+Requires=xvfb.service
+
+[Service]
+User=${USERN}
+Environment=DISPLAY=:1
+Environment=HOME=/home/${USERN}
+ExecStartPre=/bin/sleep 4
+ExecStart=/bin/bash /home/${USERN}/.vnc/xstartup
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
