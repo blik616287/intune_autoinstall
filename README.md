@@ -25,6 +25,8 @@ We can mitigate this by using a PXE boot process:
 
 After the autoinstall, the box will reboot with disk encryption enabled
   - Input the disk encryption password to continue, and you're good to go.
+  - The VM will then boot to the guest OS and install the MDM controlled packages as cloud-init runcmd
+  - It will then reboot, and all neccesary packages and configuration will be installed.
 
 To access VNC and SSH:
   - Log into the device on the Vbox console
