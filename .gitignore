@@ -20,6 +20,7 @@
 *.vbox-prev
 *.log
 *.tmp
+/tmp/
 /temp/
 /.virtualbox/
 /seed.iso
