@@ -256,33 +256,21 @@ autoinstall:
     - curtin in-target --target=/target -- systemctl start xvfb.service
 
     # Install software
-    #- curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/setup_software.sh.bz2 > /usr/local/bin/setup-software.sh"
-    #- curtin in-target --target=/target -- bash -c "chmod 755 /usr/local/bin/setup-software.sh"
-    #- curtin in-target --target=/target -- su -c "/usr/local/bin/setup-software.sh" ubuntu
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/setup_software.sh.bz2 > /usr/local/bin/setup-software.sh"
+    - curtin in-target --target=/target -- bash -c "chmod 755 /usr/local/bin/setup-software.sh"
 
     # Ensure Openbox menu dependancies are present
-    #- curtin in-target --target=/target -- bash -c "mkdir -p /home/${USERN}/.config/openbox"
-    #- curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/menu.xml.bz2 > /home/${USERN}/.config/openbox/menu.xml"
-    #- curtin in-target --target=/target -- bash -c "chown -R ${USERN}:${USERN} /home/${USERN}/.config"
-    #- curtin in-target --target=/target -- systemctl restart openbox.service
-
-    # Install VBoxGuestAdditions
-    #- curtin in-target --target=/target -- bash -c "mkdir -p /mnt/cdrom"
-    #- curtin in-target --target=/target -- bash -c "mount /dev/sr2 /mnt/cdrom"
-    #- curtin in-target --target=/target -- bash -c "cd /mnt/cdrom && ./VBoxLinuxAdditions.run"
+    - curtin in-target --target=/target -- bash -c "mkdir -p /home/${USERN}/.config/openbox"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/menu.xml.bz2 > /home/${USERN}/.config/openbox/menu.xml"
+    - curtin in-target --target=/target -- bash -c "chown -R ${USERN}:${USERN} /home/${USERN}/.config"
 
   user-data:
     disable_root: true
     runcmd:
       # Install MDM software
-      - bunzip2 -c /tmp/setup_software.sh.bz2 > /usr/local/bin/setup-software.sh
-      - chmod 755 /usr/local/bin/setup-software.sh
       - su -c "/usr/local/bin/setup-software.sh" ubuntu
 
       # Ensure Openbox menu dependencies are present
-      - mkdir -p /home/${USERN}/.config/openbox
-      - bunzip2 -c /tmp/menu.xml.bz2 > /home/${USERN}/.config/openbox/menu.xml
-      - chown -R ${USERN}:${USERN} /home/${USERN}/.config
       - systemctl restart openbox.service
 
       # Run VBoxGuestAdditions
