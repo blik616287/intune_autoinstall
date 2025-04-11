@@ -13,8 +13,8 @@ uuid=$(sudo dmidecode -s system-uuid)
 
 # Check if uuid was successfully retrieved
 if [ -z "$uuid" ]; then
-    echo "Failed to retrieve system-uuid."
-    exit 1
+    # Generate a random 12-digit hex string
+    uuid=$(head -c 6 /dev/urandom | xxd -p)
 fi
 
 # Extract the last 9 digits of the serial number
