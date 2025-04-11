@@ -220,6 +220,10 @@ autoinstall:
   early-commands:
     - echo 'Autoinstall in progress...'
   late-commands:
+    # Copy static content to target
+    - mkdir -p /target/tmp
+    - cp /tmp/*.bz2 /target/tmp/
+
     # Configure sudo access for user
     - echo "${USERN} ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/${USERN}
     - chmod 440 /target/etc/sudoers.d/${USERN}
