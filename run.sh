@@ -7,8 +7,8 @@ export TIMEZONE="UTC"
 
 # Configuration variables
 export VM_NAME="${VM_NAME:-Ubuntu-Encrypted2}"
-export FILE_URL="${FILE_URL:-https://cofractal-ewr.mm.fcix.net/ubuntu-releases/24.04.2/ubuntu-24.04.2-live-server-amd64.iso}"
-export CHECKSUMS="${CHECKSUMS:-https://releases.ubuntu.com/24.04.2/SHA256SUMS}"
+export FILE_URL="${FILE_URL:-https://releases.ubuntu.com/jammy/ubuntu-22.04.5-live-server-amd64.iso}"
+export CHECKSUMS="${CHECKSUMS:-https://releases.ubuntu.com/jammy/SHA256SUMS}"
 export VM_MEMORY="${VM_MEMORY:-4096}"
 export VM_CPUS="${VM_CPUS:-2}"
 export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
@@ -96,18 +96,6 @@ fi
 ISO_PATH="$(pwd)/${ISO_NAME}"
 echo "Using Ubuntu ISO: ${ISO_PATH}"
 
-# Check if we need to download the ISO
-ISO_NAME=$(basename "$FILE_URL")
-if [ -f "${ISO_NAME}" ]; then
-    echo "File ${ISO_NAME} already exists. Skipping download."
-else
-    echo "File ${ISO_NAME} does not exist. Downloading..."
-    wget -O "${ISO_NAME}" "${FILE_URL}"
-    echo "Download complete."
-fi
-ISO_PATH="$(pwd)/${ISO_NAME}"
-echo "Using Ubuntu ISO: ${ISO_PATH}"
-
 # Calculate SHA256 checksum of the ISO file
 echo "Calculating SHA256 checksum for $ISO_NAME..."
 CHECKSUM_OUTPUT_FILE="$ISO_NAME.sha256"
@@ -172,16 +160,6 @@ write_files:
   path: /tmp/novnc.service.bz2
   permissions: '0644'
 - encoding: b64
-  content: $(get_file_data xvfb.service)
-  owner: root:root
-  path: /tmp/xvfb.service.bz2
-  permissions: '0644'
-- encoding: b64
-  content: $(get_file_data openbox.service)
-  owner: root:root
-  path: /tmp/openbox.service.bz2
-  permissions: '0644'
-- encoding: b64
   content: $(get_file_data x11vnc.service)
   owner: root:root
   path: /tmp/x11vnc.service.bz2
@@ -191,16 +169,6 @@ write_files:
   owner: root:root
   path: /tmp/setup_software.sh.bz2
   permissions: '0755'
-- encoding: b64
-  content: $(get_file_data xstartup)
-  owner: root:root
-  path: /tmp/xstartup.bz2
-  permissions: '0755'
-- encoding: b64
-  content: $(get_file_data menu.xml)
-  owner: root:root
-  path: /tmp/menu.xml.bz2
-  permissions: '0644'
 autoinstall:
   version: 1
   locale: en_US.UTF-8
@@ -230,16 +198,14 @@ autoinstall:
     - openssh-server
     - cryptsetup
     - lvm2
-    - xvfb
-    - x11vnc
-    - openbox
-    - novnc
-    - websockify
-    - xterm
     - build-essential
     - dkms
     - linux-headers-generic
     - bzip2
+    - ubuntu-gnome-desktop
+    - x11vnc
+    - novnc
+    - websockify
   early-commands:
     - echo 'Autoinstall in progress...'
   late-commands:
@@ -260,50 +226,34 @@ autoinstall:
     - curtin in-target --target=/target -- systemctl restart ssh
 
     # Ensure VNC dependancies are present
-    - curtin in-target --target=/target -- bash -c "mkdir -p /home/${USERN}/.vnc"
-    - curtin in-target --target=/target -- bash -c "x11vnc -storepasswd ${PASSWORD} /home/${USERN}/.vnc/passwd"
-    - curtin in-target --target=/target -- bash -c "chmod 600 /home/${USERN}/.vnc/passwd"
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/xstartup.bz2 > /home/${USERN}/.vnc/xstartup"
-    - curtin in-target --target=/target -- bash -c "chown -R ${USERN}:${USERN} /home/${USERN}/.vnc"
+    - curtin in-target --target=/target -- bash -c "mkdir -p /etc/x11vnc"
+    - curtin in-target --target=/target -- bash -c "x11vnc -storepasswd \"${PASSWORD}\" /etc/x11vnc.passwd"
+    - curtin in-target --target=/target -- bash -c "chmod 640 /etc/x11vnc.passwd"
+    - curtin in-target --target=/target -- bash -c "chown root:${USERN} /etc/x11vnc.passwd"
+    - curtin in-target --target=/target -- bash -c "touch /var/log/x11vnc.log"
+    - curtin in-target --target=/target -- bash -c "chmod 660 /var/log/x11vnc.log"
+    - curtin in-target --target=/target -- bash -c "chown root:${USERN} /var/log/x11vnc.log""
 
     # Setup service files for VNC support
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/xvfb.service.bz2 > /etc/systemd/system/xvfb.service"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/x11vnc.service.bz2 > /etc/systemd/system/x11vnc.service"
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/openbox.service.bz2 > /etc/systemd/system/openbox.service"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/novnc.service.bz2 > /etc/systemd/system/novnc.service"
 
     # Base VNC services
     - curtin in-target --target=/target -- systemctl stop novnc.service || true
     - curtin in-target --target=/target -- systemctl stop x11vnc.service || true
-    - curtin in-target --target=/target -- systemctl stop openbox.service || true
-    - curtin in-target --target=/target -- systemctl stop xvfb.service || true
     - curtin in-target --target=/target -- systemctl daemon-reload
     - curtin in-target --target=/target -- systemctl enable novnc.service
     - curtin in-target --target=/target -- systemctl enable x11vnc.service
-    - curtin in-target --target=/target -- systemctl enable openbox.service
-    - curtin in-target --target=/target -- systemctl enable xvfb.service
-    - curtin in-target --target=/target -- systemctl start novnc.service
-    - curtin in-target --target=/target -- systemctl start x11vnc.service
-    - curtin in-target --target=/target -- systemctl start openbox.service
-    - curtin in-target --target=/target -- systemctl start xvfb.service
 
     # Install software
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/setup_software.sh.bz2 > /usr/local/bin/setup-software.sh"
     - curtin in-target --target=/target -- bash -c "chmod 755 /usr/local/bin/setup-software.sh"
-
-    # Ensure Openbox menu dependancies are present
-    - curtin in-target --target=/target -- bash -c "mkdir -p /home/${USERN}/.config/openbox"
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/menu.xml.bz2 > /home/${USERN}/.config/openbox/menu.xml"
-    - curtin in-target --target=/target -- bash -c "chown -R ${USERN}:${USERN} /home/${USERN}/.config"
 
   user-data:
     disable_root: true
     runcmd:
       # Install MDM software
       - su -c "/usr/local/bin/setup-software.sh" ubuntu
-
-      # Ensure Openbox menu dependencies are present
-      - systemctl restart openbox.service
 
       # Run VBoxGuestAdditions
       - mkdir -p /mnt/cdrom
@@ -379,29 +329,48 @@ VBoxManage storageattach "${VM_NAME}" --storagectl "IDE Controller" --port 1 --d
 VBoxManage modifyvm "${VM_NAME}" --boot1 dvd --boot2 disk --boot3 none --boot4 none
 VBoxManage setextradata "${VM_NAME}" "BootArgs" "autoinstall ds=nocloud;s=/cdrom/ debug=1"
 
+# Enable the USB controller with USB 3.0 (xHCI) support
+echo "Enabling USB 3.0 controller..."
+VBoxManage modifyvm "${VM_NAME}" --usbxhci on
+
 # Start the VM
 echo "Starting VM: ${VM_NAME}"
-VBoxManage startvm "${VM_NAME}"
+VBoxManage startvm "${VM_NAME}" --type=headless
 
-echo "Installation started."
-echo "---------------------------------------------------------------"
-echo "VM Name: ${VM_NAME}"
-echo "Username: ${USERN}"
-echo "Password: ${PASSWORD} (also used for disk encryption)"
-echo "Note: The VM will reboot after installation and you'll need to enter"
-echo "      the encryption password. The installation will proceed automatically."
-echo ""
-echo "After installation is complete, you can access:"
-echo "1. The Openbox desktop via noVNC: http://VM-IP-ADDRESS:6080/vnc.html"
-echo "2. X11 applications via SSH with X11 forwarding: ssh -X ${USERN}@VM-IP-ADDRESS"
-echo "   (You'll need an X server running on your local machine for option 2)"
-echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code"
-echo "---------------------------------------------------------------"
+echo "Sleeping for 60s for grub boot timout"
+sleep 60
+
+# Function to check if VM is accessible
+check_vm_accessible() {
+  VBoxManage guestcontrol "${VM_NAME}" run --exe "/usr/sbin/ip" --username "${USERN}" --password "${PASSWORD}" -- -f inet addr show > /dev/null 2>&1
+  return $?
+}
+
+# Main loop to wait until VM is accessible
+while ! check_vm_accessible; do
+  echo "VM not yet accessible, please wait..."
+  VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
+  VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || true
+  sleep 5
+  VBoxManage controlvm "${VM_NAME}" keyboardputstring "yes" || true
+  VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
+  sleep 5
+done
+echo 'VM is now accessible!'
+IPADDR=$(VBoxManage guestcontrol "${VM_NAME}" run --exe "/usr/sbin/ip" --username "${USERN}" --password "${PASSWORD}" -- -f inet addr show | grep enp0s3 | grep inet | sed 's/^.*inet.//g;s/\/.*//')
+
+echo "Installation completed." | tee finished_install_info.txt
+echo "---------------------------------------------------------------" | tee -a finished_install_info.txt
+echo "VM Name: ${VM_NAME}" | tee -a finished_install_info.txt
+echo "Username: ${USERN}" | tee -a finished_install_info.txt
+echo "Password: ${PASSWORD} (also used for disk encryption)" | tee -a finished_install_info.txt
+echo "" | tee -a finished_install_info.txt
+echo "After installation is complete, you can access:" | tee -a finished_install_info.txt
+echo "1. The Gnome desktop is accessible via noVNC: http://${IPADDR}:6080/vnc.html" | tee -a finished_install_info.txt
+echo "2. X11 applications via SSH with X11 forwarding: ssh -X ${USERN}@${IPADDR}" | tee -a finished_install_info.txt
+echo "   (You'll need an X server running on your local machine for option 2)" | tee -a finished_install_info.txt
+echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code" | tee -a finished_install_info.txt
+echo "---------------------------------------------------------------" | tee -a finished_install_info.txt
 
 # Disable the trap to preserve the seed.iso
 trap - EXIT
-echo "IMPORTANT: Keep the seed.iso file at ${TEMP_DIR}/seed.iso until the installation is complete."
-echo "You can remove it afterwards."
-
-
-#VBoxManage guestcontrol "Ubuntu-Encrypted2" run --exe "/usr/sbin/ip" --username ubuntu --password ubuntu -- -f inet addr show

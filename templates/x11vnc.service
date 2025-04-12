@@ -1,15 +1,14 @@
 [Unit]
-Description=X11 VNC Server
-After=xvfb.service
-Requires=xvfb.service
+Description=x11vnc service for desktop session
+After=display-manager.service
 
 [Service]
+Type=simple
 User=${USERN}
-Environment=DISPLAY=:1
-ExecStartPre=/bin/sleep 3
-ExecStart=/usr/bin/x11vnc -display :1 -rfbauth /home/${USERN}/.vnc/passwd -forever -shared -noxdamage -noxrecord -noxfixes -desktop "Virtual Desktop" -localhost -o /home/${USERN}/.vnc/x11vnc.log
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/x11vnc -display :1 -auth /run/user/1000/gdm/Xauthority -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.passwd -rfbport 5900 -shared -o /var/log/x11vnc.log
 Restart=on-failure
-RestartSec=2
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

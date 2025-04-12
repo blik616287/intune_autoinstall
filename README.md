@@ -1,215 +1,101 @@
-# intune_autoinstall
+# Ubuntu Encrypted VM Setup
 
-## Ubuntu LUKS Encrypted VM Setup Script
+This script automates the creation of an Ubuntu 22.04 LTS virtual machine with LUKS disk encryption using VirtualBox. The VM is pre-configured with SSH, X11 forwarding, VNC, and various productivity applications.
 
-A bash script for automatically creating and configuring an Ubuntu 24.04 virtual machine in Virtualbox with:
-  - LUKS encryption
-  - VBoxGuestAdditions
-  - Intune
-  - Edge
-  - VSCode
-  - Openbox
-  - x11vnc
-  - xvfb
-  - novnc
+## Features
 
-Access to the host is provided via ssh, or through a websocket VNC endpoint hosting an xvfb openbox.session.
-
-Relevant installed packages are accessible in the openbox.session via the right mouse button click menu context. 
-
-## MANUAL STEPS
-
-Since we are booting directly from an attached ISO, you need to confirm the autoinstall at the initial launch.
-We can mitigate this by using a PXE boot process:
-  - Doable via TFP setup (https://www.techrepublic.com/article/enable-pxe-boot-virtualbox/)
-
-After the autoinstall, the box will reboot with disk encryption enabled
-  - Input the disk encryption password to continue, and you're good to go.
-  - The VM will then boot to the guest OS and install the MDM controlled packages as cloud-init runcmd
-  - It will then reboot, and all neccesary packages and configuration will be installed.
-
-To access VNC and SSH:
-  - Log into the device on the Vbox console
-  - Run command: ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1
-    - This gives you the bridged IP address of the device
-  - VNC: http://ipaddress:6080/vnc.html 
-  - SSH: ssh -X username@ipaddress 'command'
+- Automated installation of Ubuntu 22.04 LTS Server with LUKS full disk encryption
+- Gnome Desktop Environment
+- Remote access via:
+  - SSH with X11 forwarding
+  - noVNC web interface
+- Pre-installed software:
+  - Microsoft Edge
+  - Intune Portal
+  - 1Password
+  - VS Code
+- VirtualBox Guest Additions for better integration
+- Configurable VM resources (RAM, CPU, disk size)
 
 ## Prerequisites
 
-- Linux host with VirtualBox installed
-- `cloud-image-utils` package (will be installed if missing)
-- VirtualBox Extension Pack (will be installed if missing)
-- Internet connection for downloading ISO and software packages
+- VirtualBox (with Extension Pack)
+- cloud-image-utils package
+- Bash environment
+- Internet connection
 
-## Installation
+## Quick Start
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/intune_autoinstall.git
-   cd intune_autoinstall
-   ```
+1. Set your desired configuration using environment variables or use defaults
+2. Run the script: `./run.sh`
+3. Wait for installation to complete
+4. Access your VM through SSH or noVNC
 
-2. Run the installation script:
-   ```bash
-   ./run.sh
-   ```
+## Workflow
+
+```mermaid
+flowchart TD
+    A[Start Script] --> B[Process Configuration Files]
+    B --> C[Download Ubuntu ISO]
+    C --> D[Verify ISO Checksum]
+    D --> E{Is VirtualBox Extension<br>Pack Installed?}
+    E -->|No| F[Install Extension Pack]
+    E -->|Yes| G[Create Cloud-Init Config]
+    F --> G
+    G --> H[Generate cloud-init ISO]
+    H --> I{Does VM Already Exist?}
+    I -->|Yes| J[Delete Existing VM]
+    I -->|No| K[Create New VM]
+    J --> K
+    K --> L[Configure VM Settings]
+    L --> M[Create Virtual Disk]
+    M --> N[Attach Storage]
+    N --> O[Configure Boot Options]
+    O --> P[Start VM]
+    P --> Q[Wait for Installation]
+    Q --> R[Display Connection Info]
+    
+    subgraph "VM Configuration"
+    L
+    M
+    N
+    O
+    end
+    
+    subgraph "Cloud-Init Configuration"
+    G
+    H
+    end
+```
 
 ## Configuration Options
 
-The following environment variables can be set to customize the installation:
+| Environment Variable | Default Value | Description |
+|---------------------|---------------|-------------|
+| VM_NAME | Ubuntu-Encrypted2 | Name of the virtual machine |
+| FILE_URL | https://releases.ubuntu.com/jammy/ubuntu-22.04.5-live-server-amd64.iso | URL to download Ubuntu ISO |
+| VM_MEMORY | 4096 | RAM in MB |
+| VM_CPUS | 2 | Number of CPU cores |
+| VM_DISK_SIZE | 25000 | Disk size in MB |
+| USERN | ubuntu | Username |
+| PASSWORD | ubuntu | Password (also used for disk encryption) |
+| HOSTN | ubuntu-encrypted2 | Hostname |
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| VM_NAME | Name of the virtual machine | Ubuntu-Encrypted |
-| FILE_URL | URL to download Ubuntu ISO | Ubuntu 24.04.2 mirror |
-| VM_MEMORY | Memory allocation in MB | 4096 |
-| VM_CPUS | Number of CPU cores | 2 |
-| VM_DISK_SIZE | Disk size in MB | 25000 |
-| USERN | Username for the system | ubuntu |
-| PASSWORD | Password for the user (also used for disk encryption) | ubuntu |
-| HOSTN | Hostname for the system | ubuntu-encrypted |
+## Connection Details
 
-Example:
-```bash
-VM_NAME="MyUbuntuVM" VM_MEMORY=8192 VM_CPUS=4 PASSWORD="secure-password" ./run.sh
-```
-## Workflow
-```mermaid
-flowchart TD
-    A["Run Script"] --> B["Initial Setup"]
-    B --> C["Create Cloud-Init"]
-    C --> D["Create VM"]
-    D --> E["Configure VM"]
-    E --> F["Boot VM"]
-    F --> G["First Boot"]
-    G --> H["Final Setup"]
-    
-    classDef processBox fill:#f0f8ff,stroke:#4682b4,stroke-width:2px,rx:10px,ry:10px;
-    class A,B,C,D,E,F,G,H processBox;
-    
-    B --- Init
-    subgraph Init["Initial Setup Details"]
-        direction TB
-        B1["• Check ISO file"]
-        B2["• Check Extension Pack"]
-        B3["• Process template files"]
-        B1 --- B2 --- B3
-    end
-    
-    C --- CloudInit
-    subgraph CloudInit["Cloud-Init Details"]
-        direction TB
-        C1["• Generate user-data"]
-        C2["• Create meta-data"]
-        C3["• Build seed.iso"]
-        C1 --- C2 --- C3
-    end
-    
-    D --- VMCreate
-    subgraph VMCreate["VM Creation Details"]
-        direction TB
-        D1["• Create virtual disk"]
-        D2["• Attach Ubuntu ISO"]
-        D3["• Attach seed.iso"]
-        D1 --- D2 --- D3
-    end
-    
-    E --- VMConfig
-    subgraph VMConfig["VM Configuration Details"]
-        direction TB
-        E1["• Set memory/CPU"]
-        E2["• Configure networking"]
-        E3["• Set boot options"]
-        E1 --- E2 --- E3
-    end
-    
-    F --- Installation
-    subgraph Installation["Installation Process"]
-        direction TB
-        F1["• Automated Ubuntu install"]
-        F2["• Configure disk encryption"]
-        F3["• Install packages"]
-        F1 --- F2 --- F3
-    end
-    
-    G --- Boot
-    subgraph Boot["First Boot Process"]
-        direction TB
-        G1["• Enter encryption password"]
-        G2["• System initialization"]
-        G3["• User login"]
-        G1 --- G2 --- G3
-    end
-    
-    H --- Setup
-    subgraph Setup["Final Setup Process"]
-        direction TB
-        H1["• Start VNC services"]
-        H2["• Configure software"]
-        H3["• Install Guest Additions"]
-        H1 --- H2 --- H3
-    end
-    
-    H --> Software
-    subgraph Software["Software Installed"]
-        direction TB
-        I["Microsoft Edge"]
-        J["Intune Portal"]
-        K["1Password"]
-        L["VS Code"]
-        I --- J --- K --- L
-    end
-    
-    H --> Access
-    subgraph Access["Access Methods"]
-        direction TB
-        M["NoVNC Web Interface"]
-        N["SSH with X11 Forwarding"]
-        M --- N
-    end
-```
+After installation completes, the script will output connection information:
 
-## Post-Installation
+1. noVNC web interface: `http://<VM_IP>:6080/vnc.html`
+2. SSH with X11 forwarding: `ssh -X <USERN>@<VM_IP>`
 
-After installation completes, the VM will reboot. You'll need to:
+## Security Notes
 
-1. Enter the disk encryption password when prompted
-2. Once the system has booted, you can access it via:
-   - NoVNC web interface: http://VM-IP-ADDRESS:6080/vnc.html
-   - SSH with X11 forwarding: `ssh -X ubuntu@VM-IP-ADDRESS`
-
-## Project Structure
-
-- `run.sh` - Main script that orchestrates the VM creation and installation
-- `static/` - Static files used in the VM setup
-  - `novnc.service` - systemd service for NoVNC
-  - `xvfb.service` - systemd service for virtual framebuffer
-  - `setup_software.sh` - Script to install additional software
-  - `xstartup` - VNC startup configuration
-- `templates/` - Template files that will be processed with environment variables
-  - `menu.xml` - Openbox menu configuration
-  - `openbox.service` - systemd service for Openbox
-  - `x11vnc.service` - systemd service for X11VNC
-- `tmp/` - Temporary directory for generated files
+- Change the default password after installation
+- Consider using an SSH key instead of password authentication
+- The encryption password is the same as the user password by default
 
 ## Troubleshooting
 
-- If VM creation fails, check the VirtualBox logs in the VM settings
-- If installation hangs, try increasing RAM allocation with the VM_MEMORY variable
-- For network issues, try switching from bridged to NAT networking by modifying the script
-
-## Security Considerations
-
-- The default password is insecure. Always change it for production use.
-- The disk encryption password is stored in cloud-init configuration during setup.
-- For production deployments, consider removing the installation traces from the VM after setup.
-
-## License
-
-Apache
-
-## Acknowledgments
-
-- Based on Ubuntu's cloud-init autoinstallation framework
-- VirtualBox virtualization platform
+- If you encounter installation issues, check VirtualBox logs
+- For networking problems, verify that the bridged network adapter is properly configured
+- If X11 forwarding doesn't work, ensure you have an X server running on your local machine
