@@ -402,3 +402,6 @@ echo "---------------------------------------------------------------"
 trap - EXIT
 echo "IMPORTANT: Keep the seed.iso file at ${TEMP_DIR}/seed.iso until the installation is complete."
 echo "You can remove it afterwards."
+
+
+#VBoxManage guestcontrol "Ubuntu-Encrypted2" run --exe "/usr/sbin/ip" --username ubuntu --password ubuntu -- -f inet addr show
