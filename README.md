@@ -1,4 +1,4 @@
-# Ubuntu Encrypted VM Setup
+# Touchless! Ubuntu Encrypted VM Setup
 
 This script automates the creation of an Ubuntu 22.04 LTS virtual machine with LUKS disk encryption using VirtualBox. The VM is pre-configured with SSH, X11 forwarding, VNC, and various productivity applications.
 
@@ -10,6 +10,7 @@ This script automates the creation of an Ubuntu 22.04 LTS virtual machine with L
   - SSH with X11 forwarding
   - noVNC web interface
 - Pre-installed software:
+  - GNOME
   - Microsoft Edge
   - Intune Portal
   - 1Password
