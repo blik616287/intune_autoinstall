@@ -6,7 +6,7 @@ set -e
 export TIMEZONE="UTC"
 
 # Configuration variables
-export VM_NAME="${VM_NAME:-Ubuntu-Encrypted}"
+export VM_NAME="${VM_NAME:-Ubuntu-Encrypted2}"
 export FILE_URL="${FILE_URL:-https://cofractal-ewr.mm.fcix.net/ubuntu-releases/24.04.2/ubuntu-24.04.2-live-server-amd64.iso}"
 export CHECKSUMS="${CHECKSUMS:-https://releases.ubuntu.com/24.04.2/SHA256SUMS}"
 export VM_MEMORY="${VM_MEMORY:-4096}"
@@ -14,7 +14,7 @@ export VM_CPUS="${VM_CPUS:-2}"
 export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
-export HOSTN="${HOSTN:-ubuntu-encrypted}"
+export HOSTN="${HOSTN:-ubuntu-encrypted2}"
 
 # Setup file renders
 unset file_data
@@ -96,17 +96,28 @@ fi
 ISO_PATH="$(pwd)/${ISO_NAME}"
 echo "Using Ubuntu ISO: ${ISO_PATH}"
 
+# Check if we need to download the ISO
+ISO_NAME=$(basename "$FILE_URL")
+if [ -f "${ISO_NAME}" ]; then
+    echo "File ${ISO_NAME} already exists. Skipping download."
+else
+    echo "File ${ISO_NAME} does not exist. Downloading..."
+    wget -O "${ISO_NAME}" "${FILE_URL}"
+    echo "Download complete."
+fi
+ISO_PATH="$(pwd)/${ISO_NAME}"
+echo "Using Ubuntu ISO: ${ISO_PATH}"
+
 # Calculate SHA256 checksum of the ISO file
 echo "Calculating SHA256 checksum for $ISO_NAME..."
 CHECKSUM_OUTPUT_FILE="$ISO_NAME.sha256"
-wget -q "$CHECKSUMS" -O "$CHECKSUM_FILE"
+wget -q "$CHECKSUMS" -O "$CHECKSUM_OUTPUT_FILE"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to download SHA256SUMS file."
     exit 1
 fi
-echo "Calculating SHA256 checksum for $ISO_NAME..."
 ISO_CHECKSUM=$(sha256sum "$ISO_NAME" | cut -d' ' -f1)
-EXPECTED_CHECKSUM=$(grep "$ISO_NAME" "$CHECKSUM_FILE" | cut -d' ' -f1)
+EXPECTED_CHECKSUM=$(grep "$ISO_NAME" "$CHECKSUM_OUTPUT_FILE" | cut -d' ' -f1)
 if [ -z "$EXPECTED_CHECKSUM" ]; then
     echo "Warning: No matching entry for '$ISO_NAME' found in SHA256SUMS file."
     echo "Available ISO files in SHA256SUMS:"
@@ -115,7 +126,6 @@ if [ -z "$EXPECTED_CHECKSUM" ]; then
     exit 1
 fi
 echo "Local ISO checksum: $ISO_CHECKSUM"
-echo "Expected checksum:  $EXPECTED_CHECKSUM"
 
 # Check if VirtualBox Extension Pack is installed
 if VBoxManage list extpacks | grep -q "Oracle VM VirtualBox Extension Pack"; then
@@ -301,7 +311,7 @@ autoinstall:
       - cd /mnt/cdrom && ./VBoxLinuxAdditions.run
 
       # Set nomodeset boot parameter for framebuffer fix on tty console
-      - sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/s/"[^"]*"/"&'"$(grep GRUB_CMDLINE_LINUX_DEFAULT /etc/default/grub | grep -q nomodeset || echo " nomodeset")"'"/' /etc/default/grub
+      - grep -q nomodeset /etc/default/grub || sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"/' /etc/default/grub
       - update-grub
 
       # Reboot
