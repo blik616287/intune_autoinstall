@@ -232,7 +232,7 @@ autoinstall:
     - curtin in-target --target=/target -- bash -c "chown root:${USERN} /etc/x11vnc.passwd"
     - curtin in-target --target=/target -- bash -c "touch /var/log/x11vnc.log"
     - curtin in-target --target=/target -- bash -c "chmod 660 /var/log/x11vnc.log"
-    - curtin in-target --target=/target -- bash -c "chown root:${USERN} /var/log/x11vnc.log""
+    - curtin in-target --target=/target -- bash -c "chown root:${USERN} /var/log/x11vnc.log"
 
     # Setup service files for VNC support
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/x11vnc.service.bz2 > /etc/systemd/system/x11vnc.service"
