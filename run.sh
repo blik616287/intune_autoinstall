@@ -367,7 +367,7 @@ VBoxManage storageattach "${VM_NAME}" --storagectl "IDE Controller" --port 1 --d
 
 # Set boot order: DVD first, then hard disk
 VBoxManage modifyvm "${VM_NAME}" --boot1 dvd --boot2 disk --boot3 none --boot4 none
-VBoxManage setextradata "${VM_NAME}" "BootArgs" "autoinstall ds=nocloud;s=/cdrom/"
+VBoxManage setextradata "${VM_NAME}" "BootArgs" "autoinstall ds=nocloud;s=/cdrom/ debug=1"
 
 # Start the VM
 echo "Starting VM: ${VM_NAME}"
