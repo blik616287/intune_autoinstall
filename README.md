@@ -75,6 +75,7 @@ flowchart TD
 |---------------------|---------------|-------------|
 | VM_NAME | Ubuntu-Encrypted2 | Name of the virtual machine |
 | FILE_URL | https://releases.ubuntu.com/jammy/ubuntu-22.04.5-live-server-amd64.iso | URL to download Ubuntu ISO |
+| CHECKSUMS | https://releases.ubuntu.com/jammy/SHA256SUMS | URL to download the Ubuntu ISO sha256sum |
 | VM_MEMORY | 4096 | RAM in MB |
 | VM_CPUS | 2 | Number of CPU cores |
 | VM_DISK_SIZE | 25000 | Disk size in MB |
