@@ -81,8 +81,8 @@ decode_file_data() {
 
 # Validations
 process_directories
-get_file_data novnc.service
-decode_file_data novnc.service
+#get_file_data novnc.service
+#decode_file_data novnc.service
 
 # Check if we need to download the ISO
 ISO_NAME=$(basename "$FILE_URL")
@@ -267,7 +267,7 @@ autoinstall:
       # Reboot
       - reboot
 EOF
-cloud-init schema -c "${TEMP_DIR}/user-data" --annotate
+#cloud-init schema -c "${TEMP_DIR}/user-data" --annotate
 
 # Create an empty meta-data file (required for cloud-init)
 touch "${TEMP_DIR}/meta-data"
