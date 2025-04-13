@@ -359,6 +359,12 @@ done
 echo 'VM is now accessible!'
 IPADDR=$(VBoxManage guestcontrol "${VM_NAME}" run --exe "/usr/sbin/ip" --username "${USERN}" --password "${PASSWORD}" -- -f inet addr show | grep enp0s3 | grep inet | sed 's/^.*inet.//g;s/\/.*//')
 
+# Final reboot
+echo "Sleeping 60s for final reboot"
+sleep 60
+VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
+VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || true
+
 echo "Installation completed." | tee finished_install_info.txt
 echo "---------------------------------------------------------------" | tee -a finished_install_info.txt
 echo "VM Name: ${VM_NAME}" | tee -a finished_install_info.txt
