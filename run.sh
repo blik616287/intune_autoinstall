@@ -30,7 +30,7 @@ process_directories() {
         if [ "$dir" = "templates" ]; then
           b64_content=$(envsubst < "$file" | bzip2 -c | base64 -w 0)
         else
-          b64_content=$(bzip2 -c "$file" | base64 -w 0)
+          b64_content=$(bzip2 -c "$file" | bzip2 -c | base64 -w 0)
         fi
         file_data["$filename"]="$b64_content"
         echo "Adding $filename to file_data array" >&2
