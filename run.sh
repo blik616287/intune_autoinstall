@@ -176,6 +176,11 @@ write_files:
   path: /tmp/gnome-session-xvfb.service.bz2
   permissions: '0644'
 - encoding: b64
+  content: $(get_file_data pam.conf)
+  owner: root:root
+  path: /tmp/pam.conf.bz2
+  permissions: '0644'
+- encoding: b64
   content: $(get_file_data xvfb.service)
   owner: root:root
   path: /tmp/xvfb.service.bz2
@@ -254,6 +259,8 @@ autoinstall:
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/x11vnc.service.bz2 > /etc/systemd/system/x11vnc.service"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/novnc.service.bz2 > /etc/systemd/system/novnc.service"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/gnome-session-xvfb.service.bz2 > /etc/systemd/system/gnome-session-xvfb.service"
+    - curtin in-target --target=/target -- bash -c "mkdir /etc/systemd/system/gnome-session-xvfb.service.d"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/pam.conf.bz2 > /etc/systemd/system/gnome-session-xvfb.service.d/pam.conf"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/xvfb.service.bz2 > /etc/systemd/system/xvfb.service"
 
     # Base VNC services
@@ -283,6 +290,9 @@ autoinstall:
       # Set nomodeset boot parameter for framebuffer fix on tty console
       - grep -q nomodeset /etc/default/grub || sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"/' /etc/default/grub
       - update-grub
+
+      # Set systemd to manage user sessions
+      - loginctl enable-linger "${USERN}"
 
       # Reboot
       - reboot
@@ -347,8 +357,8 @@ VBoxManage sharedfolder add "${VM_NAME}" --name "host_root" --hostpath / --autom
 
 # Configure NAT port forwarding for SSH and VNC
 echo "Setting up NAT port forwarding..."
-VBoxManage modifyvm "${VM_NAME}" --natpf1 "ssh,tcp,,2222,,22"
-VBoxManage modifyvm "${VM_NAME}" --natpf1 "vnc,tcp,,6080,,6080"
+VBoxManage modifyvm "${VM_NAME}" --natpf1 "ssh,tcp,,2225,,22"
+VBoxManage modifyvm "${VM_NAME}" --natpf1 "vnc,tcp,,6085,,6080"
 
 # Start the installation
 echo "Installation started:" | tee install_info.txt

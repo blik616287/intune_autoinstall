@@ -5,23 +5,30 @@ Requires=xvfb.service
 
 [Service]
 Type=simple
-User=${USERN}
+User=$USERN
 Environment=DISPLAY=:1
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 Environment=XDG_RUNTIME_DIR=/run/user/1000
 Environment=XDG_SESSION_TYPE=x11
-Environment=GNOME_SHELL_SESSION_MODE=${USERN}
-Environment=HOME=/home/${USERN}
+Environment=GNOME_SHELL_SESSION_MODE=ubuntu
+Environment=HOME=/home/$USERN
 Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
-
-ExecStartPre=/bin/sh -c "[ -d /run/user/1000 ] || sudo /bin/mkdir -p /run/user/1000"
-ExecStartPre=/bin/sh -c "sudo /bin/chown ${USERN}:${USERN} /run/user/1000"
-ExecStartPre=/bin/sh -c "sudo /bin/chmod 700 /run/user/1000"
-ExecStartPre=/bin/sh -c "[ -S /run/user/1000/bus ] || dbus-daemon --session --address=unix:path=/run/user/1000/bus --fork"
-ExecStartPre=/bin/sh -c "[ -d /run/user/1000/pulse ] || mkdir -p /run/user/1000/pulse"
-ExecStart=/usr/bin/gnome-session --session=${USERN}
+Environment=XAUTHORITY=/home/$USERN/.Xauthority
+Environment=NO_AT_BRIDGE=1
+Environment=XDG_SESSION_ID=1
+ExecStartPre=/bin/sh -c "sudo mkdir -p /run/user/1000 || true"
+ExecStartPre=/bin/sh -c "sudo chown $USERN:$USERN /run/user/1000 || true"
+ExecStartPre=/bin/sh -c "sudo chmod 700 /run/user/1000 || true"
+ExecStartPre=/bin/sh -c "sudo mkdir -p /run/user/1000/pulse || true"
+ExecStartPre=/bin/sh -c "sudo chown $USERN:$USERN /run/user/1000/pulse || true"
+ExecStartPre=/bin/sh -c "sudo touch /home/$USERN/.Xauthority || true"
+ExecStartPre=/bin/sh -c "sudo chown $USERN:$USERN /home/$USERN/.Xauthority || true"
+ExecStartPre=/bin/sh -c "sudo loginctl enable-linger $USERN || true"
+ExecStartPre=/bin/sh -c "[ -S /run/user/1000/bus ] || dbus-daemon --session --address=unix:path=/run/user/1000/bus --fork || true"
+ExecStart=/usr/bin/gnome-session --session=ubuntu
 Restart=on-failure
 RestartSec=5
+PAMName=login
 
 [Install]
 WantedBy=multi-user.target
