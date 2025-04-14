@@ -15,6 +15,7 @@ export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
 export VM_NAME="${VM_NAME:-ubuntu-encrypted2}"
+export TOUCHLESS="${TOUCHLESS:-true}"
 
 # Setup file renders
 unset file_data
@@ -171,6 +172,16 @@ write_files:
   path: /tmp/x11vnc.service.bz2
   permissions: '0644'
 - encoding: b64
+  content: $(get_file_data gnome-session-xvfb.service)
+  owner: root:root
+  path: /tmp/gnome-session-xvfb.service.bz2
+  permissions: '0644'
+- encoding: b64
+  content: $(get_file_data xvfb.service)
+  owner: root:root
+  path: /tmp/xvfb.service.bz2
+  permissions: '0644'
+- encoding: b64
   content: $(get_file_data setup_software.sh)
   owner: root:root
   path: /tmp/setup_software.sh.bz2
@@ -243,13 +254,17 @@ autoinstall:
     # Setup service files for VNC support
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/x11vnc.service.bz2 > /etc/systemd/system/x11vnc.service"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/novnc.service.bz2 > /etc/systemd/system/novnc.service"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/gnome-session-xvfb.service.bz2 > /etc/systemd/system/gnome-session-xvfb.service"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/xvfb.service.bz2 > /etc/systemd/system/xvfb.service"
 
     # Base VNC services
     - curtin in-target --target=/target -- systemctl stop novnc.service || true
     - curtin in-target --target=/target -- systemctl stop x11vnc.service || true
     - curtin in-target --target=/target -- systemctl daemon-reload
-    - curtin in-target --target=/target -- systemctl enable novnc.service
+    - curtin in-target --target=/target -- systemctl enable xvfb.service
+    - curtin in-target --target=/target -- systemctl enable gnome-session-xvfb.service
     - curtin in-target --target=/target -- systemctl enable x11vnc.service
+    - curtin in-target --target=/target -- systemctl enable novnc.service
 
     # Install software
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/setup_software.sh.bz2 > /usr/local/bin/setup-software.sh"
@@ -343,10 +358,28 @@ VBoxManage modifyvm "${VM_NAME}" --usbxhci on
 echo "Enabling shared folder"
 VBoxManage sharedfolder add "${VM_NAME}" --name "host_root" --hostpath / --automount
 
-# Start the VM
+# Start the installation
+echo "Installation started:" | tee install_info.txt
+echo "---------------------------------------------------------------" | tee -a install_info.txt
+echo "VM Name: ${VM_NAME}" | tee -a install_info.txt
+echo "Username: ${USERN}" | tee -a install_info.txt
+echo "Password: ${PASSWORD} (also used for disk encryption)" | tee -a install_info.txt
+
+# Interactive installation
+if [ "$TOUCHLESS" = false ]; then
+  # Start the VM
+  echo "Starting VM: ${VM_NAME}"
+  VBoxManage startvm "${VM_NAME}"
+  trap - EXIT
+  exit 0
+fi
+
+# Touchless installation
 echo "Starting VM: ${VM_NAME}"
 VBoxManage startvm "${VM_NAME}" --type=headless
 
+# Continue with the automated touchless setup
+echo "Touchless setup mode selected"
 echo "Sleeping for 60s for grub boot timout"
 sleep 60
 
@@ -361,10 +394,10 @@ while ! check_vm_accessible; do
   echo "VM not yet accessible, please wait..."
   VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
   VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
-  sleep 5
+  sleep 30
   VBoxManage controlvm "${VM_NAME}" keyboardputstring "yes" || true
   VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
-  sleep 5
+  sleep 30
 done
 echo 'VM is now accessible!'
 IPADDR=$(VBoxManage guestcontrol "${VM_NAME}" run --exe "/usr/sbin/ip" --username "${USERN}" --password "${PASSWORD}" -- -f inet addr show | grep enp0s3 | grep inet | sed 's/^.*inet.//g;s/\/.*//')
@@ -375,18 +408,9 @@ sleep 60
 VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
 VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || true
 
-echo "Installation completed." | tee finished_install_info.txt
-echo "---------------------------------------------------------------" | tee -a finished_install_info.txt
-echo "VM Name: ${VM_NAME}" | tee -a finished_install_info.txt
-echo "Username: ${USERN}" | tee -a finished_install_info.txt
-echo "Password: ${PASSWORD} (also used for disk encryption)" | tee -a finished_install_info.txt
-echo "" | tee -a finished_install_info.txt
-echo "After installation is complete, you can access:" | tee -a finished_install_info.txt
-echo "1. The Gnome desktop is accessible via noVNC: http://${IPADDR}:6080/vnc.html" | tee -a finished_install_info.txt
-echo "2. X11 applications via SSH with X11 forwarding: ssh -X ${USERN}@${IPADDR}" | tee -a finished_install_info.txt
-echo "   (You'll need an X server running on your local machine for option 2)" | tee -a finished_install_info.txt
-echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code" | tee -a finished_install_info.txt
-echo "---------------------------------------------------------------" | tee -a finished_install_info.txt
-
-# Disable the trap to preserve the seed.iso
-trap - EXIT
+echo "---------------------------------------------------------------" | tee -a install_info.txt
+echo "Installation is complete, you can access:" | tee -a install_info.txt
+echo "1. The Gnome desktop is accessible via noVNC: http://${IPADDR}:6080/vnc.html" | tee -a install_info.txt
+echo "2. X11 applications via SSH with X11 forwarding: ssh -X ${USERN}@${IPADDR}" | tee -a install_info.txt
+echo "   (You'll need an X server running on your local machine for option 2)" | tee -a install_info.txt
+echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code" | tee -a install_info.txt

@@ -1,12 +1,14 @@
 [Unit]
-Description=x11vnc service for desktop session
-After=display-manager.service
+Description=x11vnc service for Xvfb desktop session
+After=xvfb.service gnome-session-xvfb.service
+Requires=xvfb.service
 
 [Service]
 Type=simple
 User=${USERN}
+Environment=DISPLAY=:1
 ExecStartPre=/bin/sleep 5
-ExecStart=/usr/bin/x11vnc -display :1 -auth /run/user/1000/gdm/Xauthority -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.passwd -rfbport 5900 -shared -o /var/log/x11vnc.log
+ExecStart=/usr/bin/x11vnc -display :1 -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.passwd -rfbport 5900 -shared -o /var/log/x11vnc.log
 Restart=on-failure
 RestartSec=10
 

@@ -1,0 +1,19 @@
+[Unit]
+Description=GNOME Session on Xvfb
+After=xvfb.service
+Requires=xvfb.service
+
+[Service]
+Type=simple
+User=${USERN}
+Environment=DISPLAY=:1
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+ExecStartPre=/bin/mkdir -p /run/user/1000
+ExecStartPre=/bin/chown ${USERN}:${USERN} /run/user/1000
+ExecStartPre=/bin/chmod 700 /run/user/1000
+ExecStartPre=/bin/sh -c "dbus-daemon --session --address=unix:path=/run/user/1000/bus --fork"
+ExecStart=/usr/bin/gnome-session
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
