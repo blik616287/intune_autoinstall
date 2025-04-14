@@ -4,7 +4,6 @@
 # But not these files...
 !.gitignore
 !run.sh
-!run2.sh
 !/static/*
 !/templates/*
 !README.md
@@ -20,6 +19,8 @@
 *.vbox-prev
 *.log
 *.tmp
+finished_install_info.txt
+install_info.txt
 /tmp/
 /temp/
 /.virtualbox/
