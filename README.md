@@ -81,7 +81,6 @@ flowchart TD
 | VM_DISK_SIZE | 25000 | Disk size in MB |
 | USERN | ubuntu | Username |
 | PASSWORD | ubuntu | Password (also used for disk encryption) |
-| HOSTN | ubuntu-encrypted2 | Hostname |
 
 ## Connection Details
 

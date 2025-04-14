@@ -6,7 +6,7 @@ set -e
 export TIMEZONE="UTC"
 
 # Configuration variables
-export VM_NAME="${VM_NAME:-Ubuntu-Encrypted2}"
+export VM_NAME="${VM_NAME:-ubuntu-encrypted2}"
 export FILE_URL="${FILE_URL:-https://releases.ubuntu.com/jammy/ubuntu-22.04.5-live-server-amd64.iso}"
 export CHECKSUMS="${CHECKSUMS:-https://releases.ubuntu.com/jammy/SHA256SUMS}"
 export VM_MEMORY="${VM_MEMORY:-4096}"
@@ -14,7 +14,7 @@ export VM_CPUS="${VM_CPUS:-2}"
 export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
-export HOSTN="${HOSTN:-ubuntu-encrypted2}"
+export VM_NAME="${VM_NAME:-ubuntu-encrypted2}"
 
 # Setup file renders
 unset file_data
@@ -175,7 +175,7 @@ autoinstall:
   keyboard:
     layout: us
   identity:
-    hostname: ${HOSTN}
+    hostname: ${VM_NAME}
     username: ${USERN}
     password: $(echo ${PASSWORD} | openssl passwd -6 -stdin)
   ssh:
