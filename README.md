@@ -81,6 +81,7 @@ flowchart TD
 | VM_DISK_SIZE | 25000 | Disk size in MB |
 | USERN | ubuntu | Username |
 | PASSWORD | ubuntu | Password (also used for disk encryption) |
+| TOUCHLESS | true | Toggle for interactive installation | 
 
 ## Connection Details
 
