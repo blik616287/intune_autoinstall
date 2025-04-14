@@ -1,103 +1,174 @@
-# Touchless! Ubuntu Encrypted VM Setup
+# Touchless! Ubuntu Encrypted VM Deployment
 
-This script automates the creation of an Ubuntu 22.04 LTS virtual machine with LUKS disk encryption using VirtualBox. The VM is pre-configured with SSH, X11 forwarding, VNC, and various productivity applications.
+This project automates the creation of an Ubuntu 22.04 virtual machine with full disk encryption in VirtualBox. The VM comes pre-configured with remote access capabilities including SSH with X11 forwarding and a web-based VNC interface.
 
 ## Features
 
-- Automated installation of Ubuntu 22.04 LTS Server with LUKS full disk encryption
-- Gnome Desktop Environment
-- Remote access via:
-  - SSH with X11 forwarding
-  - noVNC web interface
-- Pre-installed software:
-  - GNOME
+- **Automated Installation**: Fully automated or interactive setup options
+- **Disk Encryption**: LUKS encryption for the entire disk
+- **Remote Access**:
+  - SSH with X11 forwarding (port 2222)
+  - Web-based VNC access (port 6080)
+  - Virtual framebuffer support (Xvfb)
+- **Pre-installed Software**:
   - Microsoft Edge
   - Intune Portal
   - 1Password
   - VS Code
-- VirtualBox Guest Additions for better integration
-- Configurable VM resources (RAM, CPU, disk size)
+- **VirtualBox Integration**:
+  - VirtualBox Guest Additions
+  - Shared folders
+  - USB 3.0 support
 
-## Prerequisites
+## Requirements
 
-- VirtualBox (with Extension Pack)
-- cloud-image-utils package
-- Bash environment
-- Internet connection
+- VirtualBox 6.0 or higher
+- Bash shell
+- Internet connection (for downloading ISO if not already present)
+- At least 25GB of free disk space
+- Minimum 4GB RAM available for VM allocation
 
-## Quick Start
+## Directory Structure
 
-1. Set your desired configuration using environment variables or use defaults
-2. Run the script: `./run.sh`
-3. Wait for installation to complete
-4. Access your VM through SSH or noVNC
+```
+.
+├── run.sh                      # Main deployment script
+├── static
+│   └── setup_software.sh       # Script to install additional software
+└── templates
+    ├── gnome-session-xvfb.service  # Systemd service for Gnome session
+    ├── novnc.service               # Systemd service for noVNC
+    ├── x11vnc.service              # Systemd service for X11VNC
+    └── xvfb.service                # Systemd service for Xvfb
+```
+
+## Configuration
+
+The script supports several environment variables to customize your VM deployment:
+
+| Variable       | Default               | Description                               |
+|----------------|------------------------|-------------------------------------------|
+| VM_NAME        | ubuntu-encrypted2      | Name of the virtual machine               |
+| FILE_URL       | Ubuntu 22.04.5 ISO URL | URL to download Ubuntu ISO                |
+| VM_MEMORY      | 4096                   | Memory allocation in MB                   |
+| VM_CPUS        | 2                      | Number of CPU cores                       |
+| VM_DISK_SIZE   | 25000                  | Disk size in MB                           |
+| USERN          | ubuntu                 | Username for VM                           |
+| PASSWORD       | ubuntu                 | Password for user and disk encryption     |
+| TOUCHLESS      | true                   | Fully automated (true) or interactive (false) |
+
+## Usage
+
+### Basic Usage
+
+```bash
+./run.sh
+```
+
+This will use all default settings to create and configure the VM.
+
+### Custom Configuration
+
+```bash
+export VM_NAME="my-secure-vm"
+export VM_MEMORY="8192"
+export VM_CPUS="4"
+export PASSWORD="MySecurePassword"
+./run.sh
+```
+
+### Interactive Mode
+
+```bash
+export TOUCHLESS=false
+./run.sh
+```
 
 ## Workflow
 
 ```mermaid
 flowchart TD
-    A[Start Script] --> B[Process Configuration Files]
-    B --> C[Download Ubuntu ISO]
-    C --> D[Verify ISO Checksum]
-    D --> E{Is VirtualBox Extension<br>Pack Installed?}
+    A[Start run.sh] --> B{ISO exists?}
+    B -->|No| C[Download Ubuntu ISO]
+    B -->|Yes| D[Verify ISO checksum]
+    C --> D
+    D --> E{VBox Extension Pack installed?}
     E -->|No| F[Install Extension Pack]
-    E -->|Yes| G[Create Cloud-Init Config]
+    E -->|Yes| G[Process template files]
     F --> G
-    G --> H[Generate cloud-init ISO]
-    H --> I{Does VM Already Exist?}
-    I -->|Yes| J[Delete Existing VM]
-    I -->|No| K[Create New VM]
+    G --> H[Create cloud-init config]
+    H --> I{VM exists?}
+    I -->|Yes| J[Delete existing VM]
+    I -->|No| K[Create new VM]
     J --> K
-    K --> L[Configure VM Settings]
-    L --> M[Create Virtual Disk]
-    M --> N[Attach Storage]
-    N --> O[Configure Boot Options]
-    O --> P[Start VM]
-    P --> Q[Wait for Installation]
-    Q --> R[Display Connection Info]
-    
-    subgraph "VM Configuration"
-    L
-    M
-    N
-    O
-    end
-    
-    subgraph "Cloud-Init Configuration"
-    G
-    H
-    end
+    K --> L[Configure VM properties]
+    L --> M[Create and attach disk]
+    M --> N[Attach ISO files]
+    N --> O[Configure network and ports]
+    O --> P{Touchless mode?}
+    P -->|Yes| Q[Start VM headless]
+    P -->|No| R[Start VM with GUI]
+    Q --> S[Wait for boot]
+    S --> T[Enter disk encryption password]
+    T --> U[Wait for installation]
+    U --> V[Final reboot]
+    V --> W[VM Ready]
+    R --> W
 ```
 
-## Configuration Options
+## Access Methods
 
-| Environment Variable | Default Value | Description |
-|---------------------|---------------|-------------|
-| VM_NAME | Ubuntu-Encrypted2 | Name of the virtual machine |
-| FILE_URL | https://releases.ubuntu.com/jammy/ubuntu-22.04.5-live-server-amd64.iso | URL to download Ubuntu ISO |
-| CHECKSUMS | https://releases.ubuntu.com/jammy/SHA256SUMS | URL to download the Ubuntu ISO sha256sum |
-| VM_MEMORY | 4096 | RAM in MB |
-| VM_CPUS | 2 | Number of CPU cores |
-| VM_DISK_SIZE | 25000 | Disk size in MB |
-| USERN | ubuntu | Username |
-| PASSWORD | ubuntu | Password (also used for disk encryption) |
-| TOUCHLESS | true | Toggle for interactive installation | 
+Once installation is complete, you can access your VM using:
 
-## Connection Details
+1. **Web Browser**: Visit http://localhost:6080/vnc.html to access the Gnome desktop
+2. **SSH with X11 Forwarding**: Use `ssh -X -p 2222 username@localhost`
+3. **VirtualBox GUI**: If not using headless mode
 
-After installation completes, the script will output connection information:
+## Service Components
 
-1. noVNC web interface: `http://<VM_IP>:6080/vnc.html`
-2. SSH with X11 forwarding: `ssh -X <USERN>@<VM_IP>`
+### 1. Xvfb (X Virtual Framebuffer)
+Creates a virtual X11 display without requiring physical hardware.
 
-## Security Notes
+### 2. Gnome Session
+Provides a full desktop environment within the virtual framebuffer.
 
-- Change the default password after installation
-- Consider using an SSH key instead of password authentication
-- The encryption password is the same as the user password by default
+### 3. X11VNC
+Allows VNC connections to the virtual X display.
+
+### 4. NoVNC
+Provides a web-based HTML5 VNC client accessible through a browser.
 
 ## Troubleshooting
 
-- If you encounter installation issues, check VirtualBox logs
-- For networking problems, verify that the bridged network adapter is properly configured
-- If X11 forwarding doesn't work, ensure you have an X server running on your local machine
+### Common Issues
+
+1. **Installation hangs at disk encryption prompt**
+   - The VM may be waiting for the encryption password input
+   - For touchless installations, verify the keyboard input is working
+
+2. **Cannot connect to VNC**
+   - Ensure port 6080 is not blocked by firewall
+   - Verify the services are running: `systemctl status novnc.service`
+
+3. **Guest Additions not working**
+   - Try reinstalling from VM: `sudo /usr/bin/VBoxLinuxAdditions.run`
+
+### Logs
+
+- Installation logs: Check the generated `install_info.txt` file
+- VNC server log: `/var/log/x11vnc.log` in the VM
+- System logs: `sudo journalctl -u novnc.service` (or other service names)
+
+## Security Considerations
+
+- Default password should be changed after installation
+- Consider restricting access to forwarded ports (SSH/VNC)
+- For production use, consider adding firewall rules within the VM
+
+## License
+
+Apache
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
