@@ -209,10 +209,10 @@ autoinstall:
     - linux-headers-generic
     - bzip2
     - ubuntu-gnome-desktop
-    - lightdm
     - x11vnc
     - novnc
     - websockify
+    - xvfb
   early-commands:
     - echo 'Autoinstall in progress...'
   late-commands:
@@ -267,8 +267,8 @@ autoinstall:
       - cd /mnt/cdrom && ./VBoxLinuxAdditions.run
 
       # Set nomodeset boot parameter for framebuffer fix on tty console
-      #- grep -q nomodeset /etc/default/grub || sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"/' /etc/default/grub
-      #- update-grub
+      - grep -q nomodeset /etc/default/grub || sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"/' /etc/default/grub
+      - update-grub
 
       # Reboot
       - reboot
@@ -360,7 +360,7 @@ check_vm_accessible() {
 while ! check_vm_accessible; do
   echo "VM not yet accessible, please wait..."
   VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
-  VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || true
+  VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
   sleep 5
   VBoxManage controlvm "${VM_NAME}" keyboardputstring "yes" || true
   VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
