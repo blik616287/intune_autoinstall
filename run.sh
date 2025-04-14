@@ -113,7 +113,13 @@ if [ -z "$EXPECTED_CHECKSUM" ]; then
     rm -rf "$TEMP_DIR"
     exit 1
 fi
-echo "Local ISO checksum: $ISO_CHECKSUM"
+echo "Local ISO checksum: ${ISO_CHECKSUM}"
+echo "Expected ISO checksum: ${EXPECTED_CHECKSUM}"
+if [ ! "$ISO_CHECKSUM" = "$EXPECTED_CHECKSUM" ]; then
+    echo "Checksum failed"
+    exit 1
+fi
+echo "Checksum succeeded"
 
 # Check if VirtualBox Extension Pack is installed
 if VBoxManage list extpacks | grep -q "Oracle VM VirtualBox Extension Pack"; then
