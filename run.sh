@@ -230,7 +230,6 @@ autoinstall:
     - curtin in-target --target=/target -- bash -c "sed -i 's/#X11Forwarding no/X11Forwarding yes/' /etc/ssh/sshd_config"
     - curtin in-target --target=/target -- bash -c "sed -i 's/#X11DisplayOffset 10/X11DisplayOffset 10/' /etc/ssh/sshd_config"
     - curtin in-target --target=/target -- bash -c "sed -i 's/#X11UseLocalhost yes/X11UseLocalhost yes/' /etc/ssh/sshd_config"
-    - curtin in-target --target=/target -- systemctl restart ssh
 
     # Ensure VNC dependancies are present
     - curtin in-target --target=/target -- bash -c "mkdir -p /etc/x11vnc"
