@@ -357,6 +357,11 @@ VBoxManage modifyvm "${VM_NAME}" --usbxhci on
 echo "Enabling shared folder"
 VBoxManage sharedfolder add "${VM_NAME}" --name "host_root" --hostpath / --automount
 
+# Setup clipboard and drag and drop
+echo "Enabling clipboard"
+VBoxManage modifyvm "VM_NAME" --clipboard bidirectional
+VBoxManage modifyvm "VM_NAME" --draganddrop bidirectional
+
 # Configure NAT port forwarding for SSH and VNC
 echo "Setting up NAT port forwarding..."
 VBoxManage modifyvm "${VM_NAME}" --natpf1 "ssh,tcp,,${SSHPORT},,22"
