@@ -15,7 +15,7 @@ export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
 export VM_NAME="${VM_NAME:-ubuntu-encrypted2}"
-export TOUCHLESS="${TOUCHLESS:-true}"
+export TOUCHLESS="${TOUCHLESS:-false}"
 
 # Setup file renders
 unset file_data
@@ -314,7 +314,7 @@ VBoxManage modifyvm "${VM_NAME}" --graphicscontroller vboxsvga --vram 16
 
 # Set network to bridged as per Dustin Specker's tutorial
 echo "Setting network adapter to bridged mode for SSH access..."
-VBoxManage modifyvm "${VM_NAME}" --nic1 bridged
+VBoxManage modifyvm "${VM_NAME}" --nic1 nat #bridged
 # Get a list of available network adapters
 ADAPTERS=$(VBoxManage list bridgedifs | grep "^Name:" | cut -d ':' -f 2 | sed 's/^[ \t]*//')
 if [ -z "${ADAPTERS}" ]; then
@@ -348,7 +348,7 @@ VBoxManage storageattach "${VM_NAME}" --storagectl "IDE Controller" --port 1 --d
 
 # Set boot order: DVD first, then hard disk
 VBoxManage modifyvm "${VM_NAME}" --boot1 dvd --boot2 disk --boot3 none --boot4 none
-VBoxManage setextradata "${VM_NAME}" "BootArgs" "autoinstall ds=nocloud;s=/cdrom/ debug=1"
+VBoxManage setextradata "${VM_NAME}" "BootArgs" "autoinstall ds=nocloud;s=/cdrom/ debug=1 ipv6.disable=1"
 
 # Enable the USB controller with USB 3.0 (xHCI) support
 echo "Enabling USB 3.0 controller..."
