@@ -30,7 +30,7 @@ process_directories() {
         if [ "$dir" = "templates" ]; then
           b64_content=$(envsubst < "$file" | bzip2 -c | base64 -w 0)
         else
-          b64_content=$(bzip2 -c "$file" | bzip2 -c | base64 -w 0)
+          b64_content=$(bzip2 -c "$file" | base64 -w 0)
         fi
         file_data["$filename"]="$b64_content"
         echo "Adding $filename to file_data array" >&2
@@ -203,6 +203,7 @@ autoinstall:
     - linux-headers-generic
     - bzip2
     - ubuntu-gnome-desktop
+    - lightdm
     - x11vnc
     - novnc
     - websockify
@@ -261,8 +262,8 @@ autoinstall:
       - cd /mnt/cdrom && ./VBoxLinuxAdditions.run
 
       # Set nomodeset boot parameter for framebuffer fix on tty console
-      - grep -q nomodeset /etc/default/grub || sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"/' /etc/default/grub
-      - update-grub
+      #- grep -q nomodeset /etc/default/grub || sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"/' /etc/default/grub
+      #- update-grub
 
       # Reboot
       - reboot
@@ -332,6 +333,10 @@ VBoxManage setextradata "${VM_NAME}" "BootArgs" "autoinstall ds=nocloud;s=/cdrom
 # Enable the USB controller with USB 3.0 (xHCI) support
 echo "Enabling USB 3.0 controller..."
 VBoxManage modifyvm "${VM_NAME}" --usbxhci on
+
+# Setup shared folder
+echo "Enabling shared folder"
+VBoxManage sharedfolder add "${VM_NAME}" --name "host_root" --hostpath / --automount
 
 # Start the VM
 echo "Starting VM: ${VM_NAME}"
