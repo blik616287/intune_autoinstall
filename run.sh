@@ -359,8 +359,8 @@ VBoxManage sharedfolder add "${VM_NAME}" --name "host_root" --hostpath / --autom
 
 # Setup clipboard and drag and drop
 echo "Enabling clipboard"
-VBoxManage modifyvm "VM_NAME" --clipboard bidirectional
-VBoxManage modifyvm "VM_NAME" --draganddrop bidirectional
+VBoxManage modifyvm "${VM_NAME}" --clipboard bidirectional
+VBoxManage modifyvm "${VM_NAME}" --draganddrop bidirectional
 
 # Configure NAT port forwarding for SSH and VNC
 echo "Setting up NAT port forwarding..."
