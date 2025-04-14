@@ -14,7 +14,6 @@ export VM_CPUS="${VM_CPUS:-2}"
 export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
-export VM_NAME="${VM_NAME:-ubuntu-encrypted2}"
 export TOUCHLESS="${TOUCHLESS:-true}"
 
 # Setup file renders
