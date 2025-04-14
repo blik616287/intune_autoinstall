@@ -15,6 +15,8 @@ export VM_DISK_SIZE="${VM_DISK_SIZE:-25000}"
 export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
 export TOUCHLESS="${TOUCHLESS:-true}"
+export VNCPORT="${VNCPORT:-6080}"
+export SSHPORT="${VNCPORT:-2222}"
 
 # Setup file renders
 unset file_data
@@ -357,8 +359,8 @@ VBoxManage sharedfolder add "${VM_NAME}" --name "host_root" --hostpath / --autom
 
 # Configure NAT port forwarding for SSH and VNC
 echo "Setting up NAT port forwarding..."
-VBoxManage modifyvm "${VM_NAME}" --natpf1 "ssh,tcp,,2225,,22"
-VBoxManage modifyvm "${VM_NAME}" --natpf1 "vnc,tcp,,6085,,6080"
+VBoxManage modifyvm "${VM_NAME}" --natpf1 "ssh,tcp,,${SSHPORT},,22"
+VBoxManage modifyvm "${VM_NAME}" --natpf1 "vnc,tcp,,${VNCPORT},,6080"
 
 # Start the installation
 echo "Installation started:" | tee install_info.txt
@@ -411,7 +413,7 @@ VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || true
 
 echo "---------------------------------------------------------------" | tee -a install_info.txt
 echo "Installation is complete, you can access:" | tee -a install_info.txt
-echo "1. The Gnome desktop is accessible via noVNC: http://localhost:6080/vnc.html" | tee -a install_info.txt
-echo "2. X11 applications via SSH with X11 forwarding: ssh -X -p 2222 ${USERN}@localhost" | tee -a install_info.txt
+echo "1. The Gnome desktop is accessible via noVNC: http://localhost:${VNCPORT}/vnc.html" | tee -a install_info.txt
+echo "2. X11 applications via SSH with X11 forwarding: ssh -X -p ${SSHPORT} ${USERN}@localhost" | tee -a install_info.txt
 echo "   (You'll need an X server running on your local machine for option 2)" | tee -a install_info.txt
 echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code" | tee -a install_info.txt

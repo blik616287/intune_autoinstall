@@ -7,8 +7,8 @@ This project automates the creation of an Ubuntu 22.04 virtual machine with full
 - **Automated Installation**: Fully automated or interactive setup options
 - **Disk Encryption**: LUKS encryption for the entire disk
 - **Remote Access**:
-  - SSH with X11 forwarding (port 2222)
-  - Web-based VNC access (port 6080)
+  - SSH with X11 forwarding (port var:SSHPORT)
+  - Web-based VNC access (port var:VNCPORT)
   - Virtual framebuffer support (Xvfb)
 - **Pre-installed Software**:
   - Microsoft Edge
@@ -120,8 +120,8 @@ flowchart TD
 
 Once installation is complete, you can access your VM using:
 
-1. **Web Browser**: Visit http://localhost:6080/vnc.html to access the Gnome desktop
-2. **SSH with X11 Forwarding**: Use `ssh -X -p 2222 username@localhost`
+1. **Web Browser**: Visit http://localhost:VNCPORT/vnc.html to access the Gnome desktop
+2. **SSH with X11 Forwarding**: Use `ssh -X -p SSHPORT username@localhost`
 3. **VirtualBox GUI**: If not using headless mode
 
 ## Service Components
@@ -147,7 +147,7 @@ Provides a web-based HTML5 VNC client accessible through a browser.
    - For touchless installations, verify the keyboard input is working
 
 2. **Cannot connect to VNC**
-   - Ensure port 6080 is not blocked by firewall
+   - Ensure port var:VNCPORT is not blocked by firewall
    - Verify the services are running: `systemctl status novnc.service`
 
 3. **Guest Additions not working**
