@@ -16,7 +16,7 @@ export USERN="${USERN:-ubuntu}"
 export PASSWORD="${PASSWORD:-ubuntu}"
 export TOUCHLESS="${TOUCHLESS:-true}"
 export VNCPORT="${VNCPORT:-6080}"
-export SSHPORT="${VNCPORT:-2222}"
+export SSHPORT="${SSHPORT:-2222}"
 
 # Setup file renders
 unset file_data
