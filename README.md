@@ -22,7 +22,7 @@ This project automates the creation of an Ubuntu 22.04 virtual machine with full
 
 ## Requirements
 
-- VirtualBox 6.0 or higher
+- VirtualBox 7.0 or higher
 - Bash shell
 - Internet connection (for downloading ISO if not already present)
 - At least 25GB of free disk space
