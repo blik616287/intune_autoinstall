@@ -400,7 +400,7 @@ check_vm_accessible() {
 
 # Main loop to wait until VM is accessible
 while ! check_vm_accessible; do
-  echo "VM not yet accessible, please wait..."
+  echo "VM not yet accessible, please wait... This is going to take a while, like 20 min. Each status poll is 1 minute."
   VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
   VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
   sleep 30
