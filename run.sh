@@ -412,6 +412,13 @@ while ! check_vm_accessible; do
   VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
   sleep 30
 done
+
+# Final reboot
+echo "Sleeping 60s for final reboot"
+sleep 60
+VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
+VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || true
+
 echo 'VM is now accessible!'
 echo "---------------------------------------------------------------" | tee -a install_info.txt
 echo "Installation is complete, you can access:" | tee -a install_info.txt
@@ -419,10 +426,3 @@ echo "1. The Gnome desktop is accessible via noVNC: http://localhost:${VNCPORT}/
 echo "2. X11 applications via SSH with X11 forwarding: ssh -X -p ${SSHPORT} ${USERN}@localhost" | tee -a install_info.txt
 echo "   (You'll need an X server running on your local machine for option 2)" | tee -a install_info.txt
 echo "3. Installed software will include Microsoft Edge, Intune Portal, 1Password, and VS Code" | tee -a install_info.txt
-
-### TEST: may not be needed
-# Final reboot
-#echo "Sleeping 60s for final reboot"
-#sleep 60
-#VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
-#VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c || tru

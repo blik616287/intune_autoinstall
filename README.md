@@ -150,6 +150,7 @@ Provides a web-based HTML5 VNC client accessible through a browser.
    - The second boot looks like it hangs:
       ![Hanging console?](pics/Screenshot_2025-04-22_01-15-19.png)
    - Its not hanging, its going through the mdm and guest addition installations.
+   - It will reboot again.
 
 2. **Installation hangs at disk encryption prompt**
    - The VM may be waiting for the encryption password input
