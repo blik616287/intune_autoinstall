@@ -332,7 +332,7 @@ VBoxManage modifyvm "${VM_NAME}" --rtcuseutc on
 
 # Create and attach virtual disk
 echo "Creating virtual disk..."
-VM_DISK="$(VBoxManage list systemproperties | grep "Default machine folder" | cut -d':' -f2 | xargs)/${VM_NAME}/${VM_NAME}.vdi"
+VM_DISK="$(VBoxManage list systemproperties | grep 'Default machine folder' | cut -d':' -f2 | xargs)/${VM_NAME}/${VM_NAME}.vdi"
 VBoxManage createmedium disk --filename "${VM_DISK}" --size "${VM_DISK_SIZE}"
 
 # Attach storage controllers
@@ -400,7 +400,7 @@ check_vm_accessible() {
 
 # Main loop to wait until VM is accessible
 while ! check_vm_accessible; do
-  echo "VM not yet accessible, please wait... This is going to take a while, like 20 min. Each status poll is 1 minute."
+  echo "VM not yet accessible, please wait... This is going to take a while, like 20 min. Each status poll is 1 minute. Dont exit."
   VBoxManage controlvm "${VM_NAME}" keyboardputstring "${PASSWORD}" || true
   VBoxManage controlvm "${VM_NAME}" keyboardputscancode 1c 9c
   sleep 30
