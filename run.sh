@@ -192,6 +192,11 @@ write_files:
   path: /tmp/xvfb.service.bz2
   permissions: '0644'
 - encoding: b64
+  content: $(get_file_data physical-display-viewer.service)
+  owner: root:root
+  path: /tmp/physical-display-viewer.service.bz2
+  permissions: '0644'
+- encoding: b64
   content: $(get_file_data setup_software.sh)
   owner: root:root
   path: /tmp/setup_software.sh.bz2
@@ -234,6 +239,7 @@ autoinstall:
     - novnc
     - websockify
     - xvfb
+    - tigervnc-viewer
   early-commands:
     - echo 'Autoinstall in progress...'
   late-commands:
@@ -262,12 +268,13 @@ autoinstall:
     - curtin in-target --target=/target -- bash -c "chown root:${USERN} /var/log/x11vnc.log"
 
     # Setup service files for VNC support
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/x11vnc.service.bz2 > /etc/systemd/system/x11vnc.service"
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/novnc.service.bz2 > /etc/systemd/system/novnc.service"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/xvfb.service.bz2 > /etc/systemd/system/xvfb.service"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/gnome-session-xvfb.service.bz2 > /etc/systemd/system/gnome-session-xvfb.service"
     - curtin in-target --target=/target -- bash -c "mkdir /etc/systemd/system/gnome-session-xvfb.service.d"
     - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/pam.conf.bz2 > /etc/systemd/system/gnome-session-xvfb.service.d/pam.conf"
-    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/xvfb.service.bz2 > /etc/systemd/system/xvfb.service"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/x11vnc.service.bz2 > /etc/systemd/system/x11vnc.service"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/physical-display-viewer.service.bz2 > /etc/systemd/system/physical-display-viewer.service"
+    - curtin in-target --target=/target -- bash -c "bunzip2 -c /tmp/novnc.service.bz2 > /etc/systemd/system/novnc.service"
 
     # Base VNC services
     - curtin in-target --target=/target -- systemctl stop novnc.service || true
@@ -276,6 +283,7 @@ autoinstall:
     - curtin in-target --target=/target -- systemctl enable xvfb.service
     - curtin in-target --target=/target -- systemctl enable gnome-session-xvfb.service
     - curtin in-target --target=/target -- systemctl enable x11vnc.service
+    - curtin in-target --target=/target -- systemctl enable physical-display-viewer.service
     - curtin in-target --target=/target -- systemctl enable novnc.service
 
     # Install software
@@ -325,7 +333,7 @@ VBoxManage createvm --name "${VM_NAME}" --ostype "Ubuntu_64" --register
 # Set VM properties
 echo "Configuring VM..."
 VBoxManage modifyvm "${VM_NAME}" --memory "${VM_MEMORY}" --cpus "${VM_CPUS}"
-VBoxManage modifyvm "${VM_NAME}" --graphicscontroller vboxsvga --vram 16
+VBoxManage modifyvm "${VM_NAME}" --graphicscontroller vboxsvga --vram 128
 
 # Set network to NAT
 echo "Setting network adapter to NAT..."

@@ -1,0 +1,16 @@
+[Unit]
+Description=X Viewer for Xvfb Display on Physical Console
+After=x11vnc.service
+Requires=x11vnc.service
+
+[Service]
+Type=simple
+User=$USERN
+Environment=DISPLAY=:0
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/vncviewer localhost:5900 -FullScreen
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
