@@ -142,15 +142,24 @@ Provides a web-based HTML5 VNC client accessible through a browser.
 
 ### Common Issues
 
-1. **Installation hangs at disk encryption prompt**
+1. **Installation appears to hang*
+   - It takes a long time for the host to be accessible
+   - 20 minutes appropximately, it polls every minute
+   - Also if youre watching the console, youll notice it reboots a couple times.
+   - The first boot if for the general os autoinstall, and the second boot kicks off a run-command after os init.
+   - The second boot looks like it hangs:
+      ![Hanging console?](pics/Screenshot_2025-04-22_01-15-19.png)
+   - Its not hanging, its going through the mdm and guest addition installations.
+
+2. **Installation hangs at disk encryption prompt**
    - The VM may be waiting for the encryption password input
    - For touchless installations, verify the keyboard input is working
 
-2. **Cannot connect to VNC**
+3. **Cannot connect to VNC**
    - Ensure port var:VNCPORT is not blocked by firewall
    - Verify the services are running: `systemctl status novnc.service`
 
-3. **Guest Additions not working**
+4. **Guest Additions not working**
    - Try reinstalling from VM: `sudo /usr/bin/VBoxLinuxAdditions.run`
 
 ### Logs
