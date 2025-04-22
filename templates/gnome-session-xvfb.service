@@ -1,34 +1,17 @@
 [Unit]
-Description=GNOME Session on Xvfb
+Description=X11 Screen Mirroring from :0 to :1
 After=xvfb.service
 Requires=xvfb.service
 
 [Service]
 Type=simple
 User=$USERN
-Environment=DISPLAY=:1
-Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-Environment=XDG_RUNTIME_DIR=/run/user/1000
-Environment=XDG_SESSION_TYPE=x11
-Environment=GNOME_SHELL_SESSION_MODE=ubuntu
-Environment=HOME=/home/$USERN
-Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
+Environment=DISPLAY=:0
 Environment=XAUTHORITY=/home/$USERN/.Xauthority
-Environment=NO_AT_BRIDGE=1
-Environment=XDG_SESSION_ID=1
-ExecStartPre=/bin/sh -c "sudo mkdir -p /run/user/1000 || true"
-ExecStartPre=/bin/sh -c "sudo chown $USERN:$USERN /run/user/1000 || true"
-ExecStartPre=/bin/sh -c "sudo chmod 700 /run/user/1000 || true"
-ExecStartPre=/bin/sh -c "sudo mkdir -p /run/user/1000/pulse || true"
-ExecStartPre=/bin/sh -c "sudo chown $USERN:$USERN /run/user/1000/pulse || true"
-ExecStartPre=/bin/sh -c "sudo touch /home/$USERN/.Xauthority || true"
-ExecStartPre=/bin/sh -c "sudo chown $USERN:$USERN /home/$USERN/.Xauthority || true"
-ExecStartPre=/bin/sh -c "sudo loginctl enable-linger $USERN || true"
-ExecStartPre=/bin/sh -c "[ -S /run/user/1000/bus ] || dbus-daemon --session --address=unix:path=/run/user/1000/bus --fork || true"
-ExecStart=/usr/bin/gnome-session --session=ubuntu
+ExecStart=/usr/bin/x11vnc -display :0 -viewonly -shared -forever -loop -noxdamage -repeat -clip 1920x1080+0+0 -rfbport 5901 -desktop "Mirror"
+ExecStartPost=/bin/bash -c 'sleep 2 && DISPLAY=:1 XAUTHORITY=/home/$USERN/.Xauthority /usr/bin/vncviewer -fullscreen -viewonly localhost:5901'
 Restart=on-failure
 RestartSec=5
-PAMName=login
 
 [Install]
 WantedBy=multi-user.target

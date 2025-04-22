@@ -1,6 +1,6 @@
 [Unit]
 Description=x11vnc service for Xvfb desktop session
-After=xvfb.service gnome-session-xvfb.service
+After=xvfb.service
 Requires=xvfb.service
 
 [Service]
