@@ -123,6 +123,10 @@ if [ ! "$ISO_CHECKSUM" = "$EXPECTED_CHECKSUM" ]; then
 fi
 echo "Checksum succeeded"
 
+### TODO: Bug
+### tommy reported an odd metadata file was downloaded, and the pathing was broken with my hosts unix username.
+### showed as something like *.blikversion.*
+### test in a virtual box next
 # Check if VirtualBox Extension Pack is installed
 if VBoxManage list extpacks | grep -q "Oracle VM VirtualBox Extension Pack"; then
     echo "VirtualBox Extension Pack is already installed."
